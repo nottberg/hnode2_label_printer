@@ -66,6 +66,10 @@ class HNLPPrinterManager
  
         HNLP_PM_RESULT_T getAvailablePrinterList( std::vector< HNLPPrinter* > &list );
 
+        HNLP_PM_RESULT_T getActivePrinter( HNLPPrinter **activePrinter );
+
+        HNLP_PM_RESULT_T setActivePrinterByID( std::string id );
+
     private:
 
         void executePrinterListRefresh();
@@ -76,7 +80,7 @@ class HNLPPrinterManager
 
         std::map< std::string, HNLPPrinter* > m_printerList;
 
-        std::string m_activePrinterID;
+        HNLPPrinter *m_activePrinter;
 };
 
 #endif // __HNLP_PRINTER_MANAGER_H__

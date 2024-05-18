@@ -99,7 +99,7 @@ HNLPPrinter::isShared()
 
 HNLPPrinterManager::HNLPPrinterManager()
 {
-
+    m_activePrinter = NULL;
 }
 
 HNLPPrinterManager::~HNLPPrinterManager()
@@ -196,3 +196,38 @@ HNLPPrinterManager::getOrCreatePrinter( std::string idBuf )
 
     return mip->second;
 }
+
+HNLP_PM_RESULT_T 
+HNLPPrinterManager::getActivePrinter( HNLPPrinter **activePrinter )
+{
+    if( m_activePrinter == NULL )
+        return HNLP_PM_RESULT_FAILURE;
+
+    *activePrinter = m_activePrinter;
+
+    return HNLP_PM_RESULT_SUCCESS;
+}
+
+HNLP_PM_RESULT_T
+HNLPPrinterManager::setActivePrinterByID( std::string id )
+{
+    // Short circuit a request that results in no actual change.
+    if( ( m_activePrinter != NULL ) && ( m_activePrinter->getID() == id ) )
+    {
+        return HNLP_PM_RESULT_SUCCESS;
+    }
+
+    // Try to find the requested printer in our list of known printers
+    std::map< std::string, HNLPPrinter* >::iterator mip = m_printerList.find( id );
+
+    // No match so fail
+    if( mip == m_printerList.end() )
+        return HNLP_PM_RESULT_FAILURE;
+
+    // Set the new active printer and return success
+    m_activePrinter = mip->second;
+
+    return HNLP_PM_RESULT_SUCCESS;
+}
+
+

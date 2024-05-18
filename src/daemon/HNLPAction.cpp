@@ -8,6 +8,7 @@
 #include "HNLPAction.h"
 
 namespace pjs = Poco::JSON;
+namespace pdy = Poco::Dynamic;
 
 HNLPAction::HNLPAction()
 {
@@ -232,6 +233,34 @@ HNLPPrinterAction::getType()
 HNLP_AR_RESULT_T
 HNLPPrinterAction::decodeRequest( HNOperationData *opData, uint& HTTPResponseCode )
 {
+    std::cout << "=== HNLPPrinterAction::decodeRequest - OP: " << getOpID() << " ===" << std::endl;
+
+    if( "putActivePrinter" == getOpID() )
+    {
+        m_newID.clear();
+
+        std::istream& rs = opData->requestBody();
+
+        try 
+        {
+            // Attempt to parse the json
+            pjs::Parser parser;
+            pdy::Var varRoot = parser.parse( rs );
+
+            // Get a pointer to the root object
+            pjs::Object::Ptr jsRoot = varRoot.extract< pjs::Object::Ptr >();
+
+            if( jsRoot->has( "activePrinterID" ) )
+                m_newID = jsRoot->getValue<std::string>( "activePrinterID" );
+        }
+        catch( Poco::Exception ex )
+        {
+            std::cout << "HNLPPrinterAction::decodeRequest exception: " << ex.displayText() << std::endl;
+            HTTPResponseCode = HNR_HTTP_INTERNAL_SERVER_ERROR;
+            return HNLP_AR_RESULT_REQUEST_REJECT;
+        }
+    }
+
     return HNLP_AR_RESULT_REQUEST_QUEUE;
 }
 
@@ -281,6 +310,57 @@ HNLPPrinterAction::generateRspContent( HNLPPrinterManager *printMgr )
 
         // Set the HTTP response code
         setResponseCode( HNR_HTTP_OK );
+    }
+    else if( "getActivePrinterInfo" == getOpID() )  
+    {
+        HNLPPrinter *activePrinter = NULL;
+        pjs::Object jsRsp;
+        pjs::Object jsPrintInfo;
+
+        if( printMgr->getActivePrinter( &activePrinter ) == HNLP_PM_RESULT_SUCCESS )
+        {
+            jsPrintInfo.set( "id", activePrinter->getID() );
+            jsPrintInfo.set( "model", activePrinter->getModel() );
+            jsPrintInfo.set( "info", activePrinter->getInfo() );
+            jsPrintInfo.set( "location", activePrinter->getLocation() );
+            jsPrintInfo.set( "uri", activePrinter->getURI() );
+            jsPrintInfo.set( "accepting", activePrinter->isAccepting() ? true : false );
+            jsPrintInfo.set( "shared", activePrinter->isShared() ? true : false );
+
+            jsRsp.set( "activePrinterID", activePrinter->getID() );
+            jsRsp.set( "activePrinterInfo", jsPrintInfo );    
+        }
+        else
+        {
+            jsRsp.set( "activePrinterID", "" );
+            jsRsp.set( "activePrinterInfo", jsPrintInfo );    
+        }
+
+        // Set response content type
+        std::stringstream& ostr = setResponseStringStream( "application/json" );
+
+        // Render response content
+        try{ 
+            pjs::Stringifier::stringify( jsRsp, ostr, 1 ); 
+        } catch( ... ) {
+            std::cout << "ERROR: Exception while serializing comment" << std::endl;
+        }
+
+        // Set the HTTP response code
+        setResponseCode( HNR_HTTP_OK );
+    }
+    else if( "putActivePrinter" == getOpID() )
+    {
+        if( printMgr->setActivePrinterByID( m_newID ) == HNLP_PM_RESULT_SUCCESS )
+        {
+            // Set the HTTP response code
+            setResponseCode( HNR_HTTP_OK );
+        }
+        else
+        {
+            // Set the HTTP response code
+            setResponseCode( HNR_HTTP_NOT_FOUND );
+        }
     }
     else
     {

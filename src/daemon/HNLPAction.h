@@ -159,7 +159,8 @@ class HNLPPrinterAction : public HNLPAction
         virtual bool hasRspContent();
 
     private:
-
+        std::string m_newID;
+        
 };
 
 class HNLPActionFactory
