@@ -228,6 +228,8 @@ HNLabelPrinterDevice::initConfig()
 
     m_hnodeDev.initConfigSections( cfg );
 
+    m_printerMgr.initConfigSection( cfg );
+
     cfg.debugPrint(2);
     
     std::cout << "Saving config..." << std::endl;
@@ -260,6 +262,8 @@ HNLabelPrinterDevice::readConfig()
     std::cout << "cl1" << std::endl;
     m_hnodeDev.readConfigSections( cfg );
 
+    m_printerMgr.readConfigSection( cfg );
+
     std::cout << "Config loaded" << std::endl;
 
     return HNLPD_RESULT_SUCCESS;
@@ -272,6 +276,8 @@ HNLabelPrinterDevice::updateConfig()
     HNodeConfig     cfg;
 
     m_hnodeDev.updateConfigSections( cfg );
+
+    m_printerMgr.updateConfigSection( cfg );
 
     cfg.debugPrint(2);
     
@@ -359,8 +365,11 @@ HNLabelPrinterDevice::startAction()
             // Generate response data for return to requestor
             statAction->generateRspContent();
 
+            if( statAction->hasConfigChange() )
+              actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_UPDATE );
+
             // Done with this request
-            actBits = HNID_ACTBIT_COMPLETE;
+            actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_COMPLETE );
         }
         break;
 
@@ -371,8 +380,11 @@ HNLabelPrinterDevice::startAction()
             // Generate response data for return to requestor
             printerAction->generateRspContent( &m_printerMgr );
 
+            if( printerAction->hasConfigChange() )
+              actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_UPDATE );
+
             // Done with this request
-            actBits = HNID_ACTBIT_COMPLETE;
+            actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_COMPLETE );
         }
         break;
 #if 0
@@ -410,7 +422,7 @@ HNLabelPrinterDevice::startAction()
     if( actBits & HNID_ACTBIT_UPDATE )
     {
         // Commit config update
-//        updateConfig();
+        updateConfig();
     }
 
     // There was an error, complete with error
@@ -905,6 +917,26 @@ const std::string g_HNode2TestRest = R"(
         "put": {
           "summary": "Set and configure active printer parameters",
           "operationId": "putActivePrinter",
+          "responses": {
+            "200": {
+              "description": "successful operation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid status value"
+            }
+          }
+        },
+
+        "delete": {
+          "summary": "Clear the active printer setting.",
+          "operationId": "clearActivePrinter",
           "responses": {
             "200": {
               "description": "successful operation",

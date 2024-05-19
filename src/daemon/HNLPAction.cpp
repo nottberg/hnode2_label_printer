@@ -12,6 +12,7 @@ namespace pdy = Poco::Dynamic;
 
 HNLPAction::HNLPAction()
 {
+    m_configChange = false;
 }
 
 HNLPAction::~HNLPAction()
@@ -28,6 +29,18 @@ std::string
 HNLPAction::getOpID()
 {
     return m_opID;
+}
+
+void
+HNLPAction::setConfigChange( bool value )
+{
+    m_configChange = value;
+}
+
+bool
+HNLPAction::hasConfigChange()
+{
+    return m_configChange;
 }
 
 void
@@ -353,6 +366,8 @@ HNLPPrinterAction::generateRspContent( HNLPPrinterManager *printMgr )
     {
         if( printMgr->setActivePrinterByID( m_newID ) == HNLP_PM_RESULT_SUCCESS )
         {
+            setConfigChange( true );
+
             // Set the HTTP response code
             setResponseCode( HNR_HTTP_OK );
         }
@@ -361,6 +376,12 @@ HNLPPrinterAction::generateRspContent( HNLPPrinterManager *printMgr )
             // Set the HTTP response code
             setResponseCode( HNR_HTTP_NOT_FOUND );
         }
+    }
+    else if( "clearActivePrinter" == getOpID() )
+    {
+        printMgr->clearActivePrinter();
+        setConfigChange( true );
+        setResponseCode( HNR_HTTP_OK );
     }
     else
     {
@@ -395,6 +416,8 @@ HNLPActionFactory::allocateAction( std::string opID )
     else if( "getActivePrinterInfo" == opID )
         action = new HNLPPrinterAction;
     else if( "putActivePrinter" == opID )
+        action = new HNLPPrinterAction;
+    else if( "clearActivePrinter" == opID )
         action = new HNLPPrinterAction;
     else if( "getLabelSpecifications" == opID )
         action = new HNLPSpecAction;

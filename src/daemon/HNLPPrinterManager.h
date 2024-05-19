@@ -7,6 +7,8 @@
 
 #include <cups/cups.h>
 
+#include <hnode2/HNodeConfig.h>
+
 typedef enum HNLPActionPrinterManagerResult
 {
     HNLP_PM_RESULT_SUCCESS,
@@ -63,12 +65,18 @@ class HNLPPrinterManager
        ~HNLPPrinterManager();
 
         HNLP_PM_RESULT_T init();
- 
+
+        HNLP_PM_RESULT_T initConfigSection( HNodeConfig &cfg );
+        HNLP_PM_RESULT_T readConfigSection( HNodeConfig &cfg );
+        HNLP_PM_RESULT_T updateConfigSection( HNodeConfig &cfg );
+
         HNLP_PM_RESULT_T getAvailablePrinterList( std::vector< HNLPPrinter* > &list );
 
         HNLP_PM_RESULT_T getActivePrinter( HNLPPrinter **activePrinter );
 
         HNLP_PM_RESULT_T setActivePrinterByID( std::string id );
+
+        void clearActivePrinter();
 
     private:
 

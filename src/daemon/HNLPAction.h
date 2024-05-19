@@ -62,6 +62,9 @@ class HNLPAction : public HNReqWaitAction
         void setOpID( std::string opID );
         std::string getOpID();
 
+        void setConfigChange( bool value );
+        bool hasConfigChange();
+
         void setResponseCode( uint HTTPResponseCode );
 
         std::stringstream& setResponseStringStream( std::string contentType );
@@ -88,6 +91,8 @@ class HNLPAction : public HNReqWaitAction
         std::string m_rspContentType;
 
         std::stringstream m_rspStream;
+
+        bool m_configChange;
 };
 
 class HNLPStatusAction : public HNLPAction
@@ -160,7 +165,7 @@ class HNLPPrinterAction : public HNLPAction
 
     private:
         std::string m_newID;
-        
+
 };
 
 class HNLPActionFactory

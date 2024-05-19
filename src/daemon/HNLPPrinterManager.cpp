@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include <mutex>
 
 #include "HNLPPrinterManager.h"
 
@@ -171,6 +172,60 @@ HNLPPrinterManager::init()
 }
 
 HNLP_PM_RESULT_T
+HNLPPrinterManager::initConfigSection( HNodeConfig &cfg )
+{
+    HNCSection *secPtr;
+
+    // Scope lock
+    //const std::lock_guard<std::mutex> lock(m_accessMutex);
+
+    cfg.updateSection( "printerManager", &secPtr );
+    
+    if( m_activePrinter )
+        secPtr->updateValue( "activePrinterID", m_activePrinter->getID() );
+
+    return HNLP_PM_RESULT_SUCCESS;
+}
+
+HNLP_PM_RESULT_T
+HNLPPrinterManager::readConfigSection( HNodeConfig &cfg )
+{
+    HNCSection  *secPtr;
+    std::string printerID;
+
+    std::cout << "rc1" << std::endl;
+
+    // Scope lock
+    //const std::lock_guard<std::mutex> lock(m_accessMutex);
+
+    // Aquire a pointer to the "printerManager" section
+    cfg.updateSection( "printerManager", &secPtr );
+
+    secPtr->getValueByName( "activePrinterID", printerID );
+
+    if( printerID.empty() ==  false )
+        setActivePrinterByID( printerID );
+
+    return HNLP_PM_RESULT_SUCCESS;
+}
+
+HNLP_PM_RESULT_T
+HNLPPrinterManager::updateConfigSection( HNodeConfig &cfg )
+{
+    HNCSection *secPtr;
+
+    // Scope lock
+    //const std::lock_guard<std::mutex> lock(m_accessMutex);
+
+    cfg.updateSection( "printerManager", &secPtr );
+    
+    if( m_activePrinter )
+        secPtr->updateValue( "activePrinterID", m_activePrinter->getID() );
+
+    return HNLP_PM_RESULT_SUCCESS;
+}
+
+HNLP_PM_RESULT_T
 HNLPPrinterManager::getAvailablePrinterList( std::vector< HNLPPrinter* > &list )
 {
     for( std::map< std::string, HNLPPrinter* >::iterator mip = m_printerList.begin(); mip != m_printerList.end(); mip++ )
@@ -230,4 +285,9 @@ HNLPPrinterManager::setActivePrinterByID( std::string id )
     return HNLP_PM_RESULT_SUCCESS;
 }
 
+void
+HNLPPrinterManager::clearActivePrinter()
+{
+    m_activePrinter = NULL;
+}
 
