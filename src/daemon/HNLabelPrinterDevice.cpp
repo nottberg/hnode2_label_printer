@@ -14,9 +14,12 @@
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/StreamCopier.h>
+#include "Poco/DirectoryIterator.h"
+#include "Poco/FileStream.h"
 
 #include <hnode2/HNodeDevice.h>
 
+#include "HNLPLabelRender.h"
 #include "HNLabelPrinterDevicePrivate.h"
 
 using namespace Poco::Util;
@@ -136,6 +139,9 @@ HNLabelPrinterDevice::main( const std::vector<std::string>& args )
 
     // Start accepting device notifications
     m_hnodeDev.setNotifySink( this );
+
+    // Load the label definition files.
+    loadLabelDefinitionsFromLibrary();
 
     // Start up the hnode device
     m_hnodeDev.start();
@@ -292,6 +298,90 @@ HNLabelPrinterDevice::updateConfig()
     return HNLPD_RESULT_SUCCESS;
 }
 
+HNLPD_RESULT_T 
+HNLabelPrinterDevice::loadLabelDefinitionsFromLibrary()
+{
+    m_specMgr.resetDefinitions();
+    m_layoutMgr.resetDefinitions();
+
+    // Scan through library directory
+    std::string directoryPath = "/etc/hnode2/hnode2-label-printer-device/definitions.d"; 
+
+    try {
+        Poco::DirectoryIterator it(directoryPath);
+        Poco::DirectoryIterator end;
+
+        while (it != end) {
+          Poco::JSON::Parser parser;
+          Poco::JSON::Object::Ptr rootObj;
+
+          try {
+            Poco::File file(*it);
+            std::cout << "Loading definition file: "<< file.path() << std::endl;
+
+            Poco::FileInputStream ifs( file.path() );
+
+            Poco::Dynamic::Var result = parser.parse(ifs);
+      
+            
+            if( typeid(rootObj) == result.type() ) {
+              // Get the pointer to the root object in the file
+              rootObj = result.extract<Poco::JSON::Object::Ptr>();
+
+              // Process any defined label specifications
+              Poco::JSON::Array::Ptr specArr = rootObj->getArray("LabelSpecifications");
+              if( specArr )
+              {
+                std::cout << "Found Label Specifications Array" << std::endl;
+
+                for( size_t i = 0; i < specArr->size(); ++i ) {
+                  Poco::JSON::Object::Ptr childObj = specArr->getObject(i);
+
+                  m_specMgr.defineSpecificationFromJSONObject( childObj );
+
+                   //std::cout << "Child " << i + 1 << " Name: " << childObj->getValue<std::string>("name") << std::endl;
+                   //std::cout << "Child " << i + 1 << " Value: " << childObj->getValue<int>("value") << std::endl;
+                }
+      
+              }
+
+              // Process any defined layout specifications
+              Poco::JSON::Array::Ptr layoutArr = rootObj->getArray("LabelLayouts");
+              if( layoutArr )
+              {
+                std::cout << "Found Label Layouts Array" << std::endl;
+              }
+
+            }
+            
+            //std::cout << "Name: " << object->getValue<std::string>("name") << std::endl;
+            //std::cout << "Age: " << object->getValue<int>("age") << std::endl;
+      
+          } catch (Poco::FileException& e) {
+            std::cerr << "Error: Could not read file - skipping: " << e.what() << std::endl;
+          }
+
+          // Next file
+          it++;
+        }
+
+    } catch (Poco::FileNotFoundException& e) {
+        std::cerr << "Error: Directory not found: " << e.what() << std::endl;
+        return HNLPD_RESULT_FAILURE;
+    } catch (Poco::Exception& e) {
+        std::cerr << "An error occurred: " << e.what() << std::endl;
+        return HNLPD_RESULT_FAILURE;
+    }
+
+    // Open each file
+
+    // Parse it as json
+
+    // Hnadle any definitions that are present
+
+    return HNLPD_RESULT_SUCCESS;
+}
+
 void
 HNLabelPrinterDevice::loopIteration()
 {
@@ -387,6 +477,22 @@ HNLabelPrinterDevice::startAction()
             actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_COMPLETE );
         }
         break;
+
+        case HNLP_AR_TYPE_LABEL_SPEC:
+        {
+            HNLPSpecAction *specAction = (HNLPSpecAction *) m_curUserAction;
+
+            // Generate response data for return to requestor
+            specAction->generateRspContent( &m_specMgr );
+
+            if( specAction->hasConfigChange() )
+              actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_UPDATE );
+
+            // Done with this request
+            actBits = (HNID_ACTBIT_T)( actBits | HNID_ACTBIT_COMPLETE );
+        }
+        break;
+
 #if 0
         case HNSD_AR_TYPE_START_SINGLE_CAPTURE:
         {
@@ -457,6 +563,34 @@ HNLabelPrinterDevice::dispatchEP( HNodeDevice *parent, HNOperationData *opData )
     std::cout << "  thread: " << std::this_thread::get_id() << std::endl;
 
     std::string opID = opData->getOpID();
+
+    if( "postPreviewRequest" == opID )
+    {
+        // Set response content type
+        opData->responseSetChunkedTransferEncoding( true );
+        opData->responseSetContentType( "image/png" );
+      
+        HNLPLabelRender tmpRender;
+
+        tmpRender.setPrintInfo( "w79h252", 89.0, 28.0 );
+    
+        uint trID = tmpRender.createTextRegion();
+    
+        tmpRender.setTextRegionContent( trID, "Line 1\nLine 2\nLine 3" );
+        tmpRender.setTextRegionDimensions( trID, 1.0, 1.0, 87.0, 26.0 );
+        tmpRender.setTextRegionFont( trID, "", 12.0, 32.0, true );
+
+        // Generate a preview layout
+        std::ostream& ostr = opData->responseSend();
+
+        tmpRender.renderPreviewToPNGStream(&ostr);    
+
+        // Request was successful
+        opData->responseSetStatusAndReason( HNR_HTTP_OK );
+
+        return;
+    }    
+
 
     // Allocate a handler action
     HNLPAction *action = HNLPActionFactory::allocateAction( opID );
@@ -612,6 +746,12 @@ HNLabelPrinterDevice::dispatchEP( HNodeDevice *parent, HNOperationData *opData )
     {
 
     }
+    // POST "/hnode2/"
+    else if( "postPreviewRequest" == opID )
+    {
+        // Generate a preview layout
+
+    }    
     // GET "/hnode2/"
     else if( "getPrintJobs" == opID )
     {
@@ -1079,6 +1219,28 @@ const std::string g_HNode2TestRest = R"(
           }
         }
 
+      },
+
+      "/hnode2/label-printer/preview": {
+        "post": {
+          "summary": "Request a preview layout",
+          "operationId": "postPreviewRequest",
+          "responses": {
+            "200": {
+              "description": "successful operation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array"
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Invalid status value"
+            }
+          }
+        }
       },
 
       "/hnode2/label-printer/jobs": {

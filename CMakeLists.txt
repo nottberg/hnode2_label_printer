@@ -25,6 +25,9 @@ SET( HN_LABEL_PRINTER_SRC
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLabelPrinterDevice.cpp
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLPAction.cpp
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLPPrinterManager.cpp
+     ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelSpecManager.cpp
+     ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelLayoutManager.cpp
+     ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelRender.cpp
 )
 
 SET(CMAKE_BUILD_TYPE Debug)
@@ -33,6 +36,7 @@ FIND_PACKAGE( Poco REQUIRED Util Foundation Net NetSSL JSON )
 FIND_PACKAGE( HNode2 REQUIRED )
 
 INCLUDE_DIRECTORIES( ${CMAKE_SOURCE_DIR}/src/include )
+INCLUDE_DIRECTORIES( "/usr/include/cairo" "/usr/include/glib-2.0" "/usr/lib/aarch64-linux-gnu/glib-2.0/include" "/usr/include/pixman-1" "/usr/include/freetype2" "/usr/include/libpng16" "/usr/include/pango-1.0" "/usr/include/harfbuzz" "/usr/include/libmount" "/usr/include/blkid" "/usr/include/fribidi" )
 
 ADD_EXECUTABLE( ${DAEMON_NAME} ${HN_LABEL_PRINTER_SRC} )
 TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE
@@ -44,8 +48,17 @@ TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE
 )
 TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE HNode2::common )
 TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE cups )
+TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE pangocairo-1.0 )
+TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE pango-1.0 )
+TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE gobject-2.0 )
+TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE glib-2.0 )
+TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE harfbuzz )
+TARGET_LINK_LIBRARIES( ${DAEMON_NAME} PRIVATE cairo )
+
 
 INSTALL( TARGETS ${DAEMON_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin COMPONENT daemon )
+
+INSTALL( DIRECTORY ${CMAKE_SOURCE_DIR}/src/definitions/ DESTINATION /etc/hnode2/hnode2-label-printer-device/definitions.d COMPONENT daemon )
 
 SET( CPACK_GENERATOR "DEB" )
 

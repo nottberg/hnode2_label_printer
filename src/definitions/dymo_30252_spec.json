@@ -1,0 +1,17 @@
+{
+    "LabelSpecifications":[
+        {
+            "vendorName":"Dymo",
+            "vendorLabelID":"30252",
+            "vendorDescription":"White Address Labels",
+            "color":"white",
+
+            "printableAreaBoundary":{
+                "square":{
+                    "width":28,
+                    "length":89
+                }
+            }
+        }
+    ]
+}

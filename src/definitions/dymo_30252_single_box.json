@@ -1,0 +1,34 @@
+{
+    "LabelLayouts":[
+        {
+            "LayoutID":"dymo-30252-centered-box",
+            "LayoutName":"Dymo 30252 Single Text",
+            "LayoutDescription":"A single text box in center of the label.",
+
+            "TargetLabels":[
+                {
+                    "vendorName":"Dymo",
+                    "vendorLabelID":"30252"
+                }
+            ],
+
+            "ContentAreas":[
+                {
+                    "areaID":"text1",
+                    "areaType":"textbox",
+                    "boundingBox":{
+                        "widthOffset":2,
+                        "lengthOffset":2,
+                        "width":24,
+                        "length":85,
+                        "orientation":0
+                    },
+                    "text-properties":{
+                        "font":"Sans Bold 27",
+                        "font-size":36
+                    }
+                }
+            ]
+        }
+    ]
+}

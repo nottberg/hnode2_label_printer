@@ -38,6 +38,10 @@ class HNLabelPrinterDevice : public Poco::Util::ServerApplication, public HNDEPD
 
         HNLPPrinterManager m_printerMgr;
 
+        HNLPLabelSpecManager m_specMgr;
+
+        HNLPLabelLayoutManager m_layoutMgr;
+
         HNLPAction     *m_curUserAction;
         HNReqWaitQueue  m_userActionQueue;
 
@@ -67,6 +71,8 @@ class HNLabelPrinterDevice : public Poco::Util::ServerApplication, public HNDEPD
         void generateNewHealthState();
 
         void startAction();
+
+        HNLPD_RESULT_T loadLabelDefinitionsFromLibrary();
 
     protected:
         // HNDevice REST callback

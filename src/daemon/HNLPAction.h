@@ -13,12 +13,15 @@
 #include <hnode2/HNReqWaitQueue.h>
 
 #include "HNLPPrinterManager.h"
+#include "HNLPLabelSpecManager.h"
+#include "HNLPLabelLayoutManager.h"
 
 typedef enum HNLPActionRequestType 
 {
     HNLP_AR_TYPE_NOTSET                = 0,
     HNLP_AR_TYPE_DEVICE_STATUS         = 1,
-    HNLP_AR_TYPE_DEVICE_PRINTER        = 2  
+    HNLP_AR_TYPE_DEVICE_PRINTER        = 2,
+    HNLP_AR_TYPE_LABEL_SPEC            = 3     
 }HNLP_AR_TYPE_T;
 
 typedef enum HNIDStartActionBitsEnum
@@ -124,11 +127,14 @@ class HNLPSpecAction : public HNLPAction
 
         virtual HNLP_AR_RESULT_T decodeRequest( HNOperationData *opData, uint& HTTPResponseCode );
 
+        HNLP_AR_RESULT_T generateRspContent( HNLPLabelSpecManager *specMgr );
+
         virtual bool hasNewObject( std::string &newID );
         virtual bool hasRspContent();
 
     private:
 
+        HNLPLabelSpec m_newSpecReq;
 };
 
 class HNLPLayoutAction : public HNLPAction
