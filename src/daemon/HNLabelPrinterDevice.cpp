@@ -338,11 +338,7 @@ HNLabelPrinterDevice::loadLabelDefinitionsFromLibrary()
                   Poco::JSON::Object::Ptr childObj = specArr->getObject(i);
 
                   m_specMgr.defineSpecificationFromJSONObject( childObj );
-
-                   //std::cout << "Child " << i + 1 << " Name: " << childObj->getValue<std::string>("name") << std::endl;
-                   //std::cout << "Child " << i + 1 << " Value: " << childObj->getValue<int>("value") << std::endl;
-                }
-      
+                }     
               }
 
               // Process any defined layout specifications
@@ -350,12 +346,16 @@ HNLabelPrinterDevice::loadLabelDefinitionsFromLibrary()
               if( layoutArr )
               {
                 std::cout << "Found Label Layouts Array" << std::endl;
+
+                for( size_t i = 0; i < layoutArr->size(); ++i ) {
+                  Poco::JSON::Object::Ptr childObj = layoutArr->getObject(i);
+
+                  m_layoutMgr.defineLayoutFromJSONObject( childObj );
+                }
+
               }
 
             }
-            
-            //std::cout << "Name: " << object->getValue<std::string>("name") << std::endl;
-            //std::cout << "Age: " << object->getValue<int>("age") << std::endl;
       
           } catch (Poco::FileException& e) {
             std::cerr << "Error: Could not read file - skipping: " << e.what() << std::endl;
@@ -373,12 +373,9 @@ HNLabelPrinterDevice::loadLabelDefinitionsFromLibrary()
         return HNLPD_RESULT_FAILURE;
     }
 
-    // Open each file
-
-    // Parse it as json
-
-    // Hnadle any definitions that are present
-
+    m_specMgr.debugPrint();
+    m_layoutMgr.debugPrint();
+    
     return HNLPD_RESULT_SUCCESS;
 }
 

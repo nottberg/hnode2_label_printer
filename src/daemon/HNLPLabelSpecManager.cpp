@@ -24,6 +24,40 @@ HNLPSquareBoundary::~HNLPSquareBoundary()
 
 }
 
+/*
+    "square":{
+        "width":28,
+        "length":89
+    }
+*/
+HNLP_LS_RESULT_T
+HNLPSquareBoundary::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
+{
+    Poco::Dynamic::Var tmpVar;
+
+    tmpVar = defObj->get("width");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_width = tmpVar.convert<double>();
+    }
+
+    tmpVar = defObj->get("length");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_length = tmpVar.convert<double>();
+    }
+
+    return HNLP_LS_RESULT_SUCCESS;
+}
+
+void
+HNLPSquareBoundary::debugPrint()
+{
+    std::cout << "  Boundary Type: square" << std::endl;
+    std::cout << "     width: " << m_width << std::endl;
+    std::cout << "    length: " << m_length << std::endl;
+}
+
 HNLPLabelSpec::HNLPLabelSpec()
 {
     m_areaBoundary = NULL;
@@ -104,7 +138,15 @@ HNLPLabelSpec::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
 
     if( paObj->has("square") )
     {
+        HNLPSquareBoundary *sqBound = new HNLPSquareBoundary;
 
+        if( sqBound->initFromJSONObject( paObj->getObject("square") ) != HNLP_LS_RESULT_SUCCESS )
+        {
+            delete sqBound;
+            return HNLP_LS_RESULT_FAILURE;
+        }
+
+        m_areaBoundary = sqBound;
     }
     else
     {
@@ -118,13 +160,13 @@ HNLPLabelSpec::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
 void
 HNLPLabelSpec::setID( std::string value )
 {
-   // m_id = value;
+   m_id = value;
 }
 
 std::string
 HNLPLabelSpec::getID()
 {
-   // return m_id;
+   return m_id;
 }
 
 void
@@ -235,9 +277,23 @@ HNLPLabelSpec::getMarginHeight( HNLP_UNIT_T units )
     //return m_marginHeight;
 }
 
+void
+HNLPLabelSpec::debugPrint()
+{
+    std::cout << "  vendorName: " << m_vendorName << std::endl;
+    std::cout << "  vendorLabelID: " << m_vendorLabelID << std::endl;
+    std::cout << "  vendorDescription: " << m_vendorDescription << std::endl;
+    std::cout << "  color: " << m_color << std::endl;
+
+    if( m_areaBoundary != NULL )
+    {
+        m_areaBoundary->debugPrint();
+    }
+}
+
 HNLPLabelSpecManager::HNLPLabelSpecManager()
 {
-    m_nextIDValue = 0;
+    m_nextSpecIndex = 0;
 }
 
 HNLPLabelSpecManager::~HNLPLabelSpecManager()
@@ -322,6 +378,14 @@ HNLPLabelSpecManager::resetDefinitions()
     return HNLP_LS_RESULT_SUCCESS;
 }
 
+std::string
+HNLPLabelSpecManager::getNextUniqueID()
+{
+    char tmpID[32];
+    sprintf(tmpID, "ls%u", m_nextSpecIndex );
+    m_nextSpecIndex += 1;
+    return tmpID;
+}
 
 HNLP_LS_RESULT_T
 HNLPLabelSpecManager::defineSpecificationFromJSONObject( Poco::JSON::Object::Ptr defObj )
@@ -331,9 +395,26 @@ HNLPLabelSpecManager::defineSpecificationFromJSONObject( Poco::JSON::Object::Ptr
     if( newSpec->initFromJSONObject(defObj) != HNLP_LS_RESULT_SUCCESS )
         return HNLP_LS_RESULT_FAILURE;
 
+    newSpec->setID( getNextUniqueID() );
+
     m_specList.insert( std::pair< std::string, HNLPLabelSpec* >( newSpec->getID(), newSpec ) );
 
     return HNLP_LS_RESULT_SUCCESS;
+}
+
+void
+HNLPLabelSpecManager::debugPrint()
+{
+    std::cout << std::endl << "==== Label Spec Definitions ====" << std::endl;
+
+    for( std::map<std::string, HNLPLabelSpec*>::iterator it = m_specList.begin(); it != m_specList.end(); it++ )
+    {
+        std::cout << "  === Spec Definition (id: " << it->second->getID() << " )===" << std::endl;
+        it->second->debugPrint();
+        std::cout << std::endl;
+    }
+
+    std::cout << "================================" << std::endl << std::endl;
 }
 
 /*

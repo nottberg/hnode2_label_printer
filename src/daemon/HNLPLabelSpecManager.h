@@ -28,6 +28,10 @@ class HNLPAreaBoundary
         HNLPAreaBoundary();
         ~HNLPAreaBoundary();
 
+        virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj ) = 0;
+
+        virtual void debugPrint() = 0;
+
     private:
 };
 
@@ -37,7 +41,14 @@ class HNLPSquareBoundary : public HNLPAreaBoundary
         HNLPSquareBoundary();
         ~HNLPSquareBoundary();
 
+        virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
+
+        virtual void debugPrint();
+
     private:
+
+        double m_width;
+        double m_length;
 };
 
 class HNLPLabelSpec
@@ -77,8 +88,12 @@ class HNLPLabelSpec
         void clear();
 
         HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
+ 
+        void debugPrint();
 
     private:
+        std::string m_id;
+
         std::string m_vendorName;
         std::string m_vendorLabelID;
         std::string m_vendorDescription;
@@ -124,11 +139,15 @@ class HNLPLabelSpecManager
 
         //HNLP_LS_RESULT_T createNewSpecification( HNLPLabelSpec **newPtr );
 
+        void debugPrint();
+
     private:
+
+        std::string getNextUniqueID();
 
 //        HNLPPrinter* getOrCreatePrinter( std::string idBuf );
 
-        uint m_nextIDValue;
+        uint m_nextSpecIndex;
 
         std::map< std::string, HNLPLabelSpec* > m_specList;
 };
