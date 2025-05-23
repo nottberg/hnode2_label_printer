@@ -53,15 +53,10 @@ HNLPLabelTextContent::getType()
         "areaID":"text1",
         "areaType":"textbox",
         "boundingBox":{
-            "widthInset":2,
-            "lengthInset":2,
-            "width":24,
-            "length":85,
-            "orientation":0
+...
         },
         "textProperties":{
-            "font":"Sans Bold 27",
-            "font-size":36
+...
         }
     }
 */
@@ -69,8 +64,7 @@ HNLP_LL_RESULT_T
 HNLPLabelTextContent::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
 {
     Poco::JSON::Object::Ptr bbObj;
-
-    Poco::Dynamic::Var tmpVar;
+    Poco::JSON::Object::Ptr tpObj;
 
     if( defObj->has("boundingBox") == false )
     {
@@ -79,34 +73,80 @@ HNLPLabelTextContent::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
     }
 
     bbObj = defObj->getObject("boundingBox");
+    initBoundingBoxFromJSONObject(bbObj);
 
-    /*
-    tmpVar = defObj->get("width");
-    if( tmpVar.isEmpty() == false )
+    if( defObj->has("textProperties") == false )
     {
-        //m_width = tmpVar.convert<double>();
+        std::cout << "In a textbox content area, a textProperties suboject is required." << std::endl;
+        return HNLP_LL_RESULT_FAILURE;
     }
 
-    tmpVar = defObj->get("length");
-    if( tmpVar.isEmpty() == false )
-    {
-        //m_length = tmpVar.convert<double>();
-    }
-    */
+    tpObj = defObj->getObject("textProperties");
+    initTextPropertiesFromJSONObject(tpObj);
 
     return HNLP_LL_RESULT_SUCCESS;
 }
 
+/*
+"boundingBox":{
+    "widthInset":2,
+    "lengthInset":2,
+    "width":24,
+    "length":85,
+    "orientation":0
+},
+*/
 HNLP_LL_RESULT_T
 HNLPLabelTextContent::initBoundingBoxFromJSONObject( Poco::JSON::Object::Ptr bbObj )
 {
+    Poco::Dynamic::Var tmpVar;
+
+    tmpVar = bbObj->get("widthInset");
+    if( tmpVar.isEmpty() == false )
+        m_bbWidthInset = tmpVar.convert<double>();
+
+    tmpVar = bbObj->get("lengthInset");
+    if( tmpVar.isEmpty() == false )
+        m_bbLengthInset = tmpVar.convert<double>();
+
+    tmpVar = bbObj->get("width");
+    if( tmpVar.isEmpty() == false )
+        m_bbWidth = tmpVar.convert<double>();
+
+    tmpVar = bbObj->get("length");
+    if( tmpVar.isEmpty() == false )
+        m_bbLength = tmpVar.convert<double>();
+
+    tmpVar = bbObj->get("orientation");
+    if( tmpVar.isEmpty() == false )
+        m_bbOrientation = tmpVar.convert<double>();
 
     return HNLP_LL_RESULT_SUCCESS;
 }
 
+/*
+"textProperties":{
+    "format":"{text}",
+    "font":"Sans Bold 27",
+    "fontSize":36
+}
+*/
 HNLP_LL_RESULT_T
-HNLPLabelTextContent::initTextParametersFromJSONObject( Poco::JSON::Object::Ptr tpObj )
+HNLPLabelTextContent::initTextPropertiesFromJSONObject( Poco::JSON::Object::Ptr tpObj )
 {
+    Poco::Dynamic::Var tmpVar;
+
+    tmpVar = tpObj->get("format");
+    if( tmpVar.isEmpty() == false )
+        m_tpFormatStr = tmpVar.convert<std::string>();
+
+    tmpVar = tpObj->get("font");
+    if( tmpVar.isEmpty() == false )
+        m_tpFont = tmpVar.convert<std::string>();
+
+    tmpVar = tpObj->get("fontSize");
+    if( tmpVar.isEmpty() == false )
+        m_tpFontSize = tmpVar.convert<double>();
 
     return HNLP_LL_RESULT_SUCCESS;
 }
@@ -114,7 +154,17 @@ HNLPLabelTextContent::initTextParametersFromJSONObject( Poco::JSON::Object::Ptr 
 void
 HNLPLabelTextContent::debugPrint()
 {
+    std::cout << "    == Bounding Box ==" << std::endl;
+    std::cout << "       WidthInset : " << m_bbWidthInset << std::endl;
+    std::cout << "       LengthInset: " << m_bbLengthInset << std::endl;
+    std::cout << "       Width      : " << m_bbWidth << std::endl;
+    std::cout << "       Length     : " << m_bbLength << std::endl;
+    std::cout << "       Orientation: " << m_bbOrientation << std::endl;
 
+    std::cout << "    == Text Properties ==" << std::endl;
+    std::cout << "       Format    : " << m_tpFormatStr << std::endl;
+    std::cout << "       Font      : " << m_tpFont << std::endl;
+    std::cout << "       Font Size : " << m_tpFontSize << std::endl;
 }
 
 HNLPLabelTarget::HNLPLabelTarget()
@@ -254,16 +304,20 @@ HNLPLabelLayout::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
     if( tmpVar.isEmpty() == false )
     {
         Poco::JSON::Array::Ptr caArr = defObj->getArray("contentAreas");
+
+        std::cout << "caArr: " << caArr->size() << std::endl;
         
         for( size_t i = 0; i < caArr->size(); ++i ) {
             HNLPLabelTextContent *cArea; 
 
             Poco::JSON::Object::Ptr childObj = caArr->getObject(i);
 
-            tmpVar = defObj->get("areaType");
+            tmpVar = childObj->get("areaType");
             if( tmpVar.isEmpty() == true )
                 continue;
             
+            std::cout << "1" << std::endl;
+
             std::string type = tmpVar.convert<std::string>();
 
             if( type == "textbox" )
@@ -276,7 +330,9 @@ HNLPLabelLayout::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
                 continue;
             }
 
-            tmpVar = defObj->get("areaID");
+            std::cout << "2" << std::endl;
+
+            tmpVar = childObj->get("areaID");
             if( tmpVar.isEmpty() == true )
             {
                 std::cout << "Content areas require a 'areaID' attribute." << std::endl;
@@ -284,43 +340,15 @@ HNLPLabelLayout::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
                 continue;
             }
 
+            std::cout << "3" << std::endl;
+
             cArea->setID( tmpVar.convert<std::string>() );
             
+            cArea->initFromJSONObject( childObj );
+
             m_contentAreaList.push_back( cArea );
         }
     }
-
-    //tmpVar = defObj->get("color");
-    //if( tmpVar.isEmpty() == false )
-    //{
-    //    m_color = tmpVar.convert<std::string>();
-    //}
-
-    // A printable area definition is required
-    //if( defObj->has("printableAreaBoundary") == false )
-    //    return HNLP_LS_RESULT_FAILURE;
-
-    // Check the name of the subobject to see how the
-    // printable area is being defined.
-    //Poco::JSON::Object::Ptr paObj = defObj->getObject("printableAreaBoundary");
-
-    //if( paObj->has("square") )
-    //{
-    //    HNLPSquareBoundary *sqBound = new HNLPSquareBoundary;
-
-    //    if( sqBound->initFromJSONObject( paObj->getObject("square") ) != HNLP_LS_RESULT_SUCCESS )
-    //    {
-    //        delete sqBound;
-    //        return HNLP_LS_RESULT_FAILURE;
-    //    }
-
-    //    m_areaBoundary = sqBound;
-    //}
-    //else
-    //{
-        // Printable area definition method is not supported
-    //    return HNLP_LS_RESULT_FAILURE;
-    //}
 
     return HNLP_LL_RESULT_SUCCESS;
 }
@@ -343,14 +371,15 @@ HNLPLabelLayout::debugPrint()
     std::cout << "  layoutID: " << m_layoutID << std::endl;
     std::cout << "  layoutName: " << m_layoutName << std::endl;
     std::cout << "  layoutDescription: " << m_layoutDescription << std::endl;
-    /*
-    std::cout << "  color: " << m_color << std::endl;
 
-    if( m_areaBoundary != NULL )
+    for( std::vector< HNLPLabelTarget >::iterator it = m_tgtLabelList.begin(); it != m_tgtLabelList.end(); it++ )
+        std::cout << "Target Label" << std::endl;
+
+    for( std::vector< HNLPLabelContentArea* >::iterator it = m_contentAreaList.begin(); it != m_contentAreaList.end(); it++ )
     {
-        m_areaBoundary->debugPrint();
+        std::cout << "Content Area" << std::endl;        
+        (*it)->debugPrint();
     }
-    */
 }
 
 HNLPLabelLayoutManager::HNLPLabelLayoutManager()

@@ -57,7 +57,7 @@ class HNLPLabelTextContent : public HNLPLabelContentArea
     private:
 
         HNLP_LL_RESULT_T initBoundingBoxFromJSONObject( Poco::JSON::Object::Ptr bbObj );
-        HNLP_LL_RESULT_T initTextParametersFromJSONObject( Poco::JSON::Object::Ptr tpObj );
+        HNLP_LL_RESULT_T initTextPropertiesFromJSONObject( Poco::JSON::Object::Ptr tpObj );
 
         double m_bbWidthInset;
         double m_bbLengthInset;
@@ -67,7 +67,7 @@ class HNLPLabelTextContent : public HNLPLabelContentArea
 
         std::string m_tpFormatStr;
         std::string m_tpFont;
-        
+
         double m_tpFontSize;
 };
 
