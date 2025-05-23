@@ -11,30 +11,64 @@
 
 #include <hnode2/HNodeConfig.h>
 
+typedef enum HNLPContentAreaType
+{
+    HNLP_LLCA_TYPE_TEXTBOX
+}HNLP_LLCA_TYPE_T;
+
 typedef enum HNLPLabelLayoutManagerResult
 {
     HNLP_LL_RESULT_SUCCESS,
     HNLP_LL_RESULT_FAILURE  
 }HNLP_LL_RESULT_T;
 
-class HNLPLabelContentAreaBase
+class HNLPLabelContentArea
 {
     public:
-        HNLPLabelContentAreaBase();
-       ~HNLPLabelContentAreaBase();
+        HNLPLabelContentArea();
+       ~HNLPLabelContentArea();
+
+        void setID( std::string value );
+        std::string getID();
+
+        virtual HNLP_LLCA_TYPE_T getType() = 0;
+
+        virtual HNLP_LL_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj ) = 0;
+
+        virtual void debugPrint() = 0;
 
     private:
 
+        std::string m_ID;
 };
 
-class HNLPLabelTextContent : public HNLPLabelContentAreaBase
+class HNLPLabelTextContent : public HNLPLabelContentArea
 {
     public:
         HNLPLabelTextContent();
        ~HNLPLabelTextContent();
 
+        virtual HNLP_LLCA_TYPE_T getType();
+
+        virtual HNLP_LL_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
+
+        virtual void debugPrint();
+
     private:
 
+        HNLP_LL_RESULT_T initBoundingBoxFromJSONObject( Poco::JSON::Object::Ptr bbObj );
+        HNLP_LL_RESULT_T initTextParametersFromJSONObject( Poco::JSON::Object::Ptr tpObj );
+
+        double m_bbWidthInset;
+        double m_bbLengthInset;
+        double m_bbWidth;
+        double m_bbLength;
+        double m_bbOrientation;
+
+        std::string m_tpFormatStr;
+        std::string m_tpFont;
+        
+        double m_tpFontSize;
 };
 
 class HNLPLabelTarget
@@ -74,7 +108,7 @@ class HNLPLabelLayout
 
         std::vector< HNLPLabelTarget > m_tgtLabelList;
 
-        std::vector< HNLPLabelContentAreaBase* > m_contentAreaList;
+        std::vector< HNLPLabelContentArea* > m_contentAreaList;
 };
 
 class HNLPLabelLayoutManager

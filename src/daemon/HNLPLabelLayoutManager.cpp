@@ -4,22 +4,115 @@
 
 #include "HNLPLabelLayoutManager.h"
 
-HNLPLabelContentAreaBase::HNLPLabelContentAreaBase()
+HNLPLabelContentArea::HNLPLabelContentArea()
 {
-    
+
 }
 
-HNLPLabelContentAreaBase::~HNLPLabelContentAreaBase()
+HNLPLabelContentArea::~HNLPLabelContentArea()
 {
 
+}
+
+void
+HNLPLabelContentArea::setID( std::string value )
+{
+    m_ID = value;
+}
+
+std::string
+HNLPLabelContentArea::getID()
+{
+    return m_ID;
 }
 
 HNLPLabelTextContent::HNLPLabelTextContent()
 {
+    m_bbWidthInset   = 0.0;
+    m_bbLengthInset  = 0.0;
+    m_bbWidth        = 0.0;
+    m_bbLength       = 0.0;
+    m_bbOrientation  = 0.0;
 
+    m_tpFontSize = 0;
 }
 
 HNLPLabelTextContent::~HNLPLabelTextContent()
+{
+
+}
+
+HNLP_LLCA_TYPE_T 
+HNLPLabelTextContent::getType()
+{
+    return HNLP_LLCA_TYPE_TEXTBOX;
+}
+
+/*
+    {
+        "areaID":"text1",
+        "areaType":"textbox",
+        "boundingBox":{
+            "widthInset":2,
+            "lengthInset":2,
+            "width":24,
+            "length":85,
+            "orientation":0
+        },
+        "textProperties":{
+            "font":"Sans Bold 27",
+            "font-size":36
+        }
+    }
+*/
+HNLP_LL_RESULT_T
+HNLPLabelTextContent::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
+{
+    Poco::JSON::Object::Ptr bbObj;
+
+    Poco::Dynamic::Var tmpVar;
+
+    if( defObj->has("boundingBox") == false )
+    {
+        std::cout << "In a textbox content area, a boundingBox suboject is required." << std::endl;
+        return HNLP_LL_RESULT_FAILURE;
+    }
+
+    bbObj = defObj->getObject("boundingBox");
+
+    /*
+    tmpVar = defObj->get("width");
+    if( tmpVar.isEmpty() == false )
+    {
+        //m_width = tmpVar.convert<double>();
+    }
+
+    tmpVar = defObj->get("length");
+    if( tmpVar.isEmpty() == false )
+    {
+        //m_length = tmpVar.convert<double>();
+    }
+    */
+
+    return HNLP_LL_RESULT_SUCCESS;
+}
+
+HNLP_LL_RESULT_T
+HNLPLabelTextContent::initBoundingBoxFromJSONObject( Poco::JSON::Object::Ptr bbObj )
+{
+
+    return HNLP_LL_RESULT_SUCCESS;
+}
+
+HNLP_LL_RESULT_T
+HNLPLabelTextContent::initTextParametersFromJSONObject( Poco::JSON::Object::Ptr tpObj )
+{
+
+    return HNLP_LL_RESULT_SUCCESS;
+}
+
+void
+HNLPLabelTextContent::debugPrint()
 {
 
 }
@@ -144,6 +237,56 @@ HNLPLabelLayout::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
             }
             
             m_tgtLabelList.push_back( tgtLabel );
+        }
+    }
+
+/*
+    "contentAreas":[
+        {
+            "areaID":"text1",
+            "areaType":"textbox",
+...
+        }
+    ]
+
+*/
+    tmpVar = defObj->get("contentAreas");
+    if( tmpVar.isEmpty() == false )
+    {
+        Poco::JSON::Array::Ptr caArr = defObj->getArray("contentAreas");
+        
+        for( size_t i = 0; i < caArr->size(); ++i ) {
+            HNLPLabelTextContent *cArea; 
+
+            Poco::JSON::Object::Ptr childObj = caArr->getObject(i);
+
+            tmpVar = defObj->get("areaType");
+            if( tmpVar.isEmpty() == true )
+                continue;
+            
+            std::string type = tmpVar.convert<std::string>();
+
+            if( type == "textbox" )
+            {
+                cArea = (HNLPLabelTextContent *) new HNLPLabelTextContent();
+            }
+            else
+            {
+                std::cout << "Unsupportted content area type, skipping: " << type << std::endl;
+                continue;
+            }
+
+            tmpVar = defObj->get("areaID");
+            if( tmpVar.isEmpty() == true )
+            {
+                std::cout << "Content areas require a 'areaID' attribute." << std::endl;
+                delete cArea;
+                continue;
+            }
+
+            cArea->setID( tmpVar.convert<std::string>() );
+            
+            m_contentAreaList.push_back( cArea );
         }
     }
 

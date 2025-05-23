@@ -17,13 +17,14 @@
                     "areaID":"text1",
                     "areaType":"textbox",
                     "boundingBox":{
-                        "widthOffset":2,
-                        "lengthOffset":2,
+                        "widthInset":2,
+                        "lengthInset":2,
                         "width":24,
                         "length":85,
                         "orientation":0
                     },
-                    "text-properties":{
+                    "textProperties":{
+                        "format":"{text}",
                         "font":"Sans Bold 27",
                         "font-size":36
                     }
