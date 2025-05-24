@@ -484,6 +484,17 @@ HNLPLabelLayoutManager::defineLayoutFromJSONObject( Poco::JSON::Object::Ptr defO
     return HNLP_LL_RESULT_SUCCESS;
 }
 
+HNLPLabelLayout*
+HNLPLabelLayoutManager::getLayout( std::string id )
+{
+    std::map< std::string, HNLPLabelLayout* >::iterator it = m_layoutList.find(id);
+
+    if( it == m_layoutList.end() )
+        return NULL;
+
+    return it->second;
+}
+
 void
 HNLPLabelLayoutManager::debugPrint()
 {

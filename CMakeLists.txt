@@ -27,6 +27,7 @@ SET( HN_LABEL_PRINTER_SRC
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLPPrinterManager.cpp
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelSpecManager.cpp
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelLayoutManager.cpp
+     ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelRequest.cpp
      ${CMAKE_SOURCE_DIR}/src/daemon/HNLPLabelRender.cpp
 )
 

@@ -9,6 +9,10 @@
 
 #include <hnode2/HNodeConfig.h>
 
+#include "HNLPLabelSpecManager.h"
+#include "HNLPLabelLayoutManager.h"
+#include "HNLPLabelRequest.h"
+
 #define FONT "Sans Bold 27"
 #define FONT_SIZE 36
 #define DEVICE_DPI 72
@@ -84,7 +88,7 @@ class HNLPLabelRender
 
         HNLP_LR_RESULT_T renderPreviewPNG();
         
-        HNLP_LR_RESULT_T renderPreviewToPNGStream(std::ostream *outStream);
+        HNLP_LR_RESULT_T renderPreviewToPNGStream( HNLPLabelSpec *spec, HNLPLabelLayout *layout, HNLPLabelRequest *request, std::ostream *outStream );
 
     private:
 

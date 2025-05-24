@@ -22,11 +22,19 @@ typedef enum HNLPLabelSpecMeasurmentUnits
     HNLP_UNIT_MM
 }HNLP_UNIT_T;
 
+typedef enum HNLPAreaBoundaryType
+{
+    HNLP_AB_TYPE_NOTSET,
+    HNLP_AB_TYPE_SQUARE
+}HNLP_AB_TYPE_T;
+
 class HNLPAreaBoundary
 {
     public:
         HNLPAreaBoundary();
         ~HNLPAreaBoundary();
+
+        virtual HNLP_AB_TYPE_T getType() = 0;
 
         virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj ) = 0;
 
@@ -41,7 +49,12 @@ class HNLPSquareBoundary : public HNLPAreaBoundary
         HNLPSquareBoundary();
         ~HNLPSquareBoundary();
 
+        virtual HNLP_AB_TYPE_T getType();
+
         virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
+
+        double getWidth();
+        double getLength();
 
         virtual void debugPrint();
 
@@ -69,26 +82,16 @@ class HNLPLabelSpec
         void setVendorRefNum( std::string value );
         std::string getVendorRefNum();
 
-        void setWidthFromStr( std::string value );
-        void setWidth( double value, HNLP_UNIT_T units );
-        double getWidth( HNLP_UNIT_T units );
+        HNLP_AB_TYPE_T getBoundaryType();
+        bool isBoundary( HNLP_AB_TYPE_T type );
 
-        void setHeightFromStr( std::string value );
-        void setHeight( double value, HNLP_UNIT_T units );
-        double getHeight( HNLP_UNIT_T units );
-
-        void setMarginWidthFromStr( std::string value );
-        void setMarginWidth( double value, HNLP_UNIT_T units );
-        double getMarginWidth( HNLP_UNIT_T units );
-
-        void setMarginHeightFromStr( std::string value );
-        void setMarginHeight( double value, HNLP_UNIT_T units );
-        double getMarginHeight( HNLP_UNIT_T units );
+        double getBoundaryWidth();
+        double getBoundaryLength();
 
         void clear();
 
         HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
- 
+         
         void debugPrint();
 
     private:
@@ -138,6 +141,8 @@ class HNLPLabelSpecManager
         HNLP_LS_RESULT_T defineSpecificationFromJSONObject( Poco::JSON::Object::Ptr defObj );
 
         //HNLP_LS_RESULT_T createNewSpecification( HNLPLabelSpec **newPtr );
+
+        HNLPLabelSpec* getSpec( std::string id );
 
         void debugPrint();
 

@@ -567,20 +567,37 @@ HNLabelPrinterDevice::dispatchEP( HNodeDevice *parent, HNOperationData *opData )
         opData->responseSetChunkedTransferEncoding( true );
         opData->responseSetContentType( "image/png" );
       
-        HNLPLabelRender tmpRender;
+        HNLPLabelRequest tmpRequest;
+        HNLPLabelRender  tmpRender;
 
-        tmpRender.setPrintInfo( "w79h252", 89.0, 28.0 );
+        //tmpRender.setPrintInfo( "w79h252", 89.0, 28.0 );
     
-        uint trID = tmpRender.createTextRegion();
+        //uint trID = tmpRender.createTextRegion();
     
-        tmpRender.setTextRegionContent( trID, "Line 1\nLine 2\nLine 3" );
-        tmpRender.setTextRegionDimensions( trID, 1.0, 1.0, 87.0, 26.0 );
-        tmpRender.setTextRegionFont( trID, "", 12.0, 32.0, true );
+        //tmpRender.setTextRegionContent( trID, "Line 1\nLine 2\nLine 3" );
+        //tmpRender.setTextRegionDimensions( trID, 1.0, 1.0, 87.0, 26.0 );
+        //tmpRender.setTextRegionFont( trID, "", 12.0, 32.0, true );
+
+        HNLPLabelSpec *spec = m_specMgr.getSpec("ls0");
+
+        if( spec == NULL )
+        {
+            std::cerr << "Invalid label spec id" << std::endl;
+            return;
+        }
+
+        HNLPLabelLayout *layout = m_layoutMgr.getLayout("ll0");
+
+        if( layout == NULL )
+        {
+            std::cerr << "Invalid label layout id" << std::endl;
+            return;
+        }
 
         // Generate a preview layout
         std::ostream& ostr = opData->responseSend();
 
-        tmpRender.renderPreviewToPNGStream(&ostr);    
+        tmpRender.renderPreviewToPNGStream( spec, layout, &tmpRequest, &ostr );    
 
         // Request was successful
         opData->responseSetStatusAndReason( HNR_HTTP_OK );

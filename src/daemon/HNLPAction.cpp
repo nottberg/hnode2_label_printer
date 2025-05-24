@@ -210,25 +210,25 @@ HNLPSpecAction::decodeRequest( HNOperationData *opData, uint& HTTPResponseCode )
                 m_newSpecReq.setVendor( jsRoot->getValue<std::string>( "vendorName" ) );
             }
 
-            if( jsRoot->has( "width" ) )
-            {
-                m_newSpecReq.setWidthFromStr( jsRoot->getValue<std::string>( "width" ) );
-            }
+            //if( jsRoot->has( "width" ) )
+            //{
+            //    m_newSpecReq.setWidthFromStr( jsRoot->getValue<std::string>( "width" ) );
+            //}
 
-            if( jsRoot->has( "height" ) )
-            {
-                m_newSpecReq.setHeightFromStr( jsRoot->getValue<std::string>( "height" ) );
-            }
+            //if( jsRoot->has( "height" ) )
+            //{
+            //    m_newSpecReq.setHeightFromStr( jsRoot->getValue<std::string>( "height" ) );
+            //}
 
-            if( jsRoot->has( "marginWidth" ) )
-            {
-                m_newSpecReq.setMarginWidthFromStr( jsRoot->getValue<std::string>( "marginWidth" ) );
-            }
+            //if( jsRoot->has( "marginWidth" ) )
+            //{
+            //    m_newSpecReq.setMarginWidthFromStr( jsRoot->getValue<std::string>( "marginWidth" ) );
+            //}
 
-            if( jsRoot->has( "marginHeight" ) )
-            {
-                m_newSpecReq.setMarginHeightFromStr( jsRoot->getValue<std::string>( "marginHeight" ) );
-            }
+            //if( jsRoot->has( "marginHeight" ) )
+            //{
+            //    m_newSpecReq.setMarginHeightFromStr( jsRoot->getValue<std::string>( "marginHeight" ) );
+            //}
         }
         catch( Poco::Exception ex )
         {

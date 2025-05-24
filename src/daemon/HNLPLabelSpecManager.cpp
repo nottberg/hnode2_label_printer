@@ -24,6 +24,12 @@ HNLPSquareBoundary::~HNLPSquareBoundary()
 
 }
 
+HNLP_AB_TYPE_T
+HNLPSquareBoundary::getType()
+{
+    return HNLP_AB_TYPE_SQUARE;
+}
+
 /*
     "square":{
         "width":28,
@@ -48,6 +54,18 @@ HNLPSquareBoundary::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
     }
 
     return HNLP_LS_RESULT_SUCCESS;
+}
+
+double
+HNLPSquareBoundary::getWidth()
+{
+    return m_width;
+}
+
+double
+HNLPSquareBoundary::getLength()
+{
+    return m_length;
 }
 
 void
@@ -205,76 +223,54 @@ HNLPLabelSpec::getVendorRefNum()
     //return m_vendorRefNum;
 }
 
-void
-HNLPLabelSpec::setWidthFromStr( std::string value )
+HNLP_AB_TYPE_T 
+HNLPLabelSpec::getBoundaryType()
 {
+    if( m_areaBoundary )
+        return m_areaBoundary->getType();
 
+    return HNLP_AB_TYPE_NOTSET;
 }
 
-void
-HNLPLabelSpec::setWidth( double value, HNLP_UNIT_T units )
+bool
+HNLPLabelSpec::isBoundary( HNLP_AB_TYPE_T type )
 {
-    //m_width = value;
-}
+    if( m_areaBoundary && (m_areaBoundary->getType() == type) )
+        return true;
 
-double
-HNLPLabelSpec::getWidth( HNLP_UNIT_T units )
-{
-    //return m_width;
-}
-
-void
-HNLPLabelSpec::setHeightFromStr( std::string value )
-{
-
-}
-
-void
-HNLPLabelSpec::setHeight( double value, HNLP_UNIT_T units )
-{
-    //m_height = value;
+    return false;
 }
 
 double
-HNLPLabelSpec::getHeight( HNLP_UNIT_T units )
+HNLPLabelSpec::getBoundaryWidth()
 {
-    //return m_height;
-}
+    if( m_areaBoundary )
+    {
+        switch( m_areaBoundary->getType() )
+        {
+            case HNLP_AB_TYPE_SQUARE:      
+                return ((HNLPSquareBoundary *) m_areaBoundary)->getWidth();
+            break;
+        }
+    }
 
-void
-HNLPLabelSpec::setMarginWidthFromStr( std::string value )
-{
-
-}
-
-void
-HNLPLabelSpec::setMarginWidth( double value, HNLP_UNIT_T units )
-{
-    //m_marginWidth = value;
-}
-
-double
-HNLPLabelSpec::getMarginWidth( HNLP_UNIT_T units )
-{
-    //return m_marginWidth;
-}
-
-void
-HNLPLabelSpec::setMarginHeightFromStr( std::string value )
-{
-
-}
-
-void
-HNLPLabelSpec::setMarginHeight( double value, HNLP_UNIT_T units )
-{
-    //m_marginHeight = value;
+    return 0;
 }
 
 double
-HNLPLabelSpec::getMarginHeight( HNLP_UNIT_T units )
+HNLPLabelSpec::getBoundaryLength()
 {
-    //return m_marginHeight;
+    if( m_areaBoundary )
+    {
+        switch( m_areaBoundary->getType() )
+        {
+            case HNLP_AB_TYPE_SQUARE:      
+                return ((HNLPSquareBoundary *) m_areaBoundary)->getLength();
+            break;
+        }
+    }
+
+    return 0;
 }
 
 void
@@ -400,6 +396,17 @@ HNLPLabelSpecManager::defineSpecificationFromJSONObject( Poco::JSON::Object::Ptr
     m_specList.insert( std::pair< std::string, HNLPLabelSpec* >( newSpec->getID(), newSpec ) );
 
     return HNLP_LS_RESULT_SUCCESS;
+}
+
+HNLPLabelSpec*
+HNLPLabelSpecManager::getSpec( std::string id )
+{
+    std::map< std::string, HNLPLabelSpec* >::iterator it = m_specList.find(id);
+
+    if( it == m_specList.end() )
+        return NULL;
+
+    return it->second;
 }
 
 void

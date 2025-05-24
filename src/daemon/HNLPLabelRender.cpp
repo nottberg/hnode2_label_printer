@@ -233,33 +233,64 @@ ostream_write_function( void *userdata, const unsigned char *data, unsigned leng
 }
 
 HNLP_LR_RESULT_T
-HNLPLabelRender::renderPreviewToPNGStream(std::ostream *outStream)
+HNLPLabelRender::renderPreviewToPNGStream( HNLPLabelSpec *spec, 
+                                           HNLPLabelLayout *layout,
+                                           HNLPLabelRequest *request,
+                                           std::ostream *outStream )
 {
     cairo_surface_t *surf;
     cairo_t *cr;
 
-    double width=120, height=120;
+    if( spec->isBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    {
+        std::cerr << "Currently only square boundaries are supported." << std::endl;
+        return HNLP_LR_RESULT_FAILURE;
+    }
+
+    double aspectRatio = spec->getBoundaryLength()/spec->getBoundaryWidth();
+
+    std::cout << "Preview - AspectRatio: " << aspectRatio << std::endl;
+
+    double widthPixel  = 200;
+    double lengthPixel = widthPixel * aspectRatio;
+    
+    std::cout << "Preview - widthPX: " << widthPixel << std::endl;
+    std::cout << "Preview - lengthPX: " << lengthPixel << std::endl;
+
+    double PixelPerMillimeter = widthPixel / spec->getBoundaryWidth();
+
+    std::cout << "Preview - pixel per mm: " << PixelPerMillimeter << std::endl;
+
+    double padWidth  = 50;
+    double paddedWidth = widthPixel + padWidth;
+    double padLength = 50;
+    double paddedLength = lengthPixel + padLength;
+
+    std::cout << "Preview - paddedWidth: " << paddedWidth << std::endl;
+    std::cout << "Preview - paddedLength: " << paddedLength << std::endl;
+
     double ux=2, uy=2;
 
-    surf = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height );
+    surf = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, paddedWidth, paddedLength );
     cr = cairo_create( surf );
 
-    cairo_scale( cr, width, height );
+    //cairo_scale( cr, width, height );
     cairo_set_line_width( cr, 0.01 );
 
-    cairo_rectangle( cr, 0, 0, 1, 1 );
-    cairo_set_source_rgb( cr, 1, 1, 1 );
+    cairo_rectangle( cr, 0, 0, paddedWidth, paddedLength );
+    cairo_set_source_rgb( cr, 0.184, 0.309, 0.309 );
     cairo_fill( cr );
 
     //draw_diagram( name, cr );
 
-    cairo_device_to_user_distance( cr, &ux, &uy );
-    if( ux < uy )
-        ux = uy;
-    cairo_set_line_width( cr, ux );
-    cairo_set_source_rgb( cr, 0, 0, 0 );
-    cairo_rectangle( cr, 0, 0, 1, 1 );
-    cairo_stroke( cr );
+    //cairo_device_to_user_distance( cr, &ux, &uy );
+    //if( ux < uy )
+    //    ux = uy;
+    //cairo_set_line_width( cr, ux );
+    cairo_rectangle( cr, padWidth/2, padLength/2, widthPixel, lengthPixel );
+    cairo_set_source_rgb( cr, 1, 1, 1 );
+    cairo_fill( cr );
+    //cairo_stroke( cr );
 
     /* write output and clean up */
     cairo_surface_write_to_png_stream( surf, ostream_write_function, (void *)outStream );

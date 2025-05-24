@@ -126,6 +126,8 @@ class HNLPLabelLayoutManager
         HNLP_LL_RESULT_T resetDefinitions();
 
         HNLP_LL_RESULT_T defineLayoutFromJSONObject( Poco::JSON::Object::Ptr defObj );
+        
+        HNLPLabelLayout* getLayout( std::string id );
 
         void debugPrint();
 
