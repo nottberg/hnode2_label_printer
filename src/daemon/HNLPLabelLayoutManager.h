@@ -97,6 +97,10 @@ class HNLPLabelLayout
 
         HNLP_LL_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
  
+        uint GetContentAreaCount();
+    
+        HNLPLabelContentArea* GetContentAreaByIndex( uint index );
+
         void debugPrint();
 
     private:

@@ -597,6 +597,8 @@ HNLabelPrinterDevice::dispatchEP( HNodeDevice *parent, HNOperationData *opData )
         // Generate a preview layout
         std::ostream& ostr = opData->responseSend();
 
+        tmpRender.renderTemporaryPDF( spec, layout, &tmpRequest, "/tmp/tmp.pdf" );
+
         tmpRender.renderPreviewToPNGStream( spec, layout, &tmpRequest, &ostr );    
 
         // Request was successful

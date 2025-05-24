@@ -8,6 +8,8 @@
 
 #include "HNLPLabelRender.h"
 
+#define PTS_PER_MILLIMETER  2.8346456693
+
 static double
 convert_mm_to_points( double millimeters )
 {
@@ -68,6 +70,7 @@ HNLPLabelRender::~HNLPLabelRender()
 
 }
 
+/*
 void
 HNLPLabelRender::setPrintInfo( std::string mediaName, double widthMM, double heightMM )
 {
@@ -115,24 +118,150 @@ HNLPLabelRender::setTextRegionOrientation( uint regionID )
 {
 
 }
+*/
+
 
 HNLP_LR_RESULT_T 
-HNLPLabelRender::applyTextRegion( uint regionID )
+HNLPLabelRender::applyTextRegionsPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, void *context )
+{
+    cairo_t *cr = (cairo_t *) context;
+
+    for( int i = 0; i < labelLayout->GetContentAreaCount(); i++ )
+    {
+        HNLPLabelContentArea *cArea = labelLayout->GetContentAreaByIndex( i );
+
+        applyTextRegionPDF( labelLayout, request, cArea, context );
+    }
+
+    return HNLP_LR_RESULT_SUCCESS;
+}
+
+HNLP_LR_RESULT_T
+HNLPLabelRender::applyTextRegionPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, HNLPLabelContentArea *contentArea, void *context )
 {
     PangoLayout *layout;
     PangoFontDescription *desc;
-#if 0
+
+    cairo_t *cr = (cairo_t *) context;
+
+    /* Create a PangoLayout, set the font and text */
+    layout = pango_cairo_create_layout( cr );
+
+    pango_layout_set_text( layout, "Test Text For Label", -1 );
+
+    desc = pango_font_description_from_string( "Sans Bold" );
+    //pango_font_description_set_absolute_size( desc, FONT_SIZE * DEVICE_DPI * PANGO_SCALE / (72.0 * TWEAKABLE_SCALE) );
+    pango_font_description_set_size( desc, 20 * PANGO_SCALE );
+
+    printf( "PANGO_SCALE = %d\n", PANGO_SCALE );
+    pango_layout_set_font_description( layout, desc );
+    pango_font_description_free( desc );
+
+    pango_layout_set_alignment( layout, PANGO_ALIGN_CENTER );
+
+    cairo_save( cr );
+
+
+
+    /* Inform Pango to re-layout the text with the new transformation */
+    pango_cairo_update_layout( cr, layout );
+
+    int loWidth, loLength;
+    pango_layout_get_size( layout, &loLength, &loWidth );
+
+    double loWidthPts = loWidth / PANGO_SCALE;
+    double loLengthPts = loLength / PANGO_SCALE;
+
+    printf( "PDF - text width(pts): %f,  length(pts): %f\n", loWidthPts, loLengthPts );
+
+    //double centerX = m_width / 2.0;
+    //double centerY = m_height / 2.0;
+    /*
+    double centerX = 250.0 / 2.0;
+    double centerY = 635.0 / 2.0;
+
+    printf( "move_dx: %f  move_dy: %f\n", move_dx, move_dy );
+
+    */
+/*
+    cairo_set_source_rgb( cr, 0.0, 0.0, 0.0 );
+
+    cairo_move_to( cr, centerX - move_dy, centerY + move_dx );
+    
+    cairo_rotate( cr, 270 * G_PI / 180. );
+
+    pango_cairo_show_layout( cr, layout );
+*/
+    cairo_restore( cr );
+
+    /* free the layout object */
+    g_object_unref( layout );
+
+    return HNLP_LR_RESULT_SUCCESS;
+}
+
+HNLP_LR_RESULT_T
+HNLPLabelRender::renderTemporaryPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layout, HNLPLabelRequest *request, std::string outFile )
+{
+    cairo_surface_t *surf;
+    cairo_t *cr;
+
+    if( spec->isBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    {
+        std::cerr << "Currently only square boundaries are supported." << std::endl;
+        return HNLP_LR_RESULT_FAILURE;
+    }
+
+    double aspectRatio = spec->getBoundaryLength()/spec->getBoundaryWidth();
+
+    std::cout << "PDF - AspectRatio: " << aspectRatio << std::endl;
+
+    double widthPts  = spec->getBoundaryWidth() * PTS_PER_MILLIMETER; 
+    double lengthPts = spec->getBoundaryLength() * PTS_PER_MILLIMETER;
+    
+    std::cout << "PDF - widthPts: " << widthPts << std::endl;
+    std::cout << "PDF - lengthPts: " << lengthPts << std::endl;
+
+    surf = cairo_pdf_surface_create( outFile.c_str(), widthPts, lengthPts );
+    cr = cairo_create( surf );
+
+    //cairo_scale( cr, width, height );
+    cairo_set_line_width( cr, 0.01 );
+
+    cairo_rectangle( cr, 0, 0, widthPts, lengthPts );
+    cairo_set_source_rgb( cr, 1, 1, 1 );
+    cairo_fill( cr );
+
+    applyTextRegionsPDF( layout, request, cr );
+
+    /* write output and clean up */
+    cairo_surface_finish(surf);
+
+    cairo_destroy( cr );
+    cairo_surface_destroy( surf );
+
+    return HNLP_LR_RESULT_SUCCESS;
+}
+
+HNLP_LR_RESULT_T 
+HNLPLabelRender::applyTextRegionsPNG( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, void *context )
+{
+    PangoLayout *layout;
+    PangoFontDescription *desc;
+
+    cairo_t *cr = (cairo_t *) context;
+
     // Move to the upper-left corner of the text region
     cairo_translate( cr, 0, 0 );
 
     /* Create a PangoLayout, set the font and text */
     layout = pango_cairo_create_layout( cr );
 
-    pango_layout_set_text( layout, rgnPtr->getContent().c_str(), -1 );
+    pango_layout_set_text( layout, "Test Text For Label", -1 );
 
-    desc = pango_font_description_from_string( FONT );
+    desc = pango_font_description_from_string( "Sans Bold" );
     //pango_font_description_set_absolute_size( desc, FONT_SIZE * DEVICE_DPI * PANGO_SCALE / (72.0 * TWEAKABLE_SCALE) );
-    pango_font_description_set_size( desc, 10 * PANGO_SCALE );
+    pango_font_description_set_size( desc, 20 * PANGO_SCALE );
 
     printf( "PANGO_SCALE = %d\n", PANGO_SCALE );
     pango_layout_set_font_description( layout, desc );
@@ -146,11 +275,11 @@ HNLPLabelRender::applyTextRegion( uint regionID )
     //red   = (1 + cos ((angle - 60) * G_PI / 180.)) / 2;
     cairo_set_source_rgb( cr, 0.0, 0.0, 0.0 );
 
-    //cairo_rotate( cr, angle * G_PI / 180. );
 
     /* Inform Pango to re-layout the text with the new transformation */
     pango_cairo_update_layout( cr, layout );
 
+    int loWidth, loHeight;
     pango_layout_get_size( layout, &loWidth, &loHeight );
 
     printf( "width: %u,  height: %u\n", loWidth, loHeight );
@@ -161,63 +290,25 @@ HNLPLabelRender::applyTextRegion( uint regionID )
     double move_dy = ((double) loHeight) / PANGO_SCALE;
     move_dy /= 2.0;
 
-    double centerX = m_width / 2.0;
-    double centerY = m_height / 2.0;
+    //double centerX = m_width / 2.0;
+    //double centerY = m_height / 2.0;
+    double centerX = 250.0 / 2.0;
+    double centerY = 635.0 / 2.0;
 
     printf( "move_dx: %f  move_dy: %f\n", move_dx, move_dy );
 
-    cairo_move_to( cr, centerX - move_dx, centerY - move_dy );
+//    cairo_move_to( cr, centerX, centerY );
+
+    cairo_move_to( cr, centerX - move_dy, centerY + move_dx );
     
+    cairo_rotate( cr, 270 * G_PI / 180. );
+
     pango_cairo_show_layout( cr, layout );
 
     cairo_restore( cr );
 
     /* free the layout object */
     g_object_unref( layout );
-
-#endif
-}
-
-HNLP_LR_RESULT_T
-HNLPLabelRender::renderPreviewPNG()
-{
-    cairo_surface_t *surf;
-    cairo_t *cr;
-
-    double width=120, height=120;
-    double ux=2, uy=2;
-
-//	char svg_filename[50];
-    char png_filename[50];
-//	strcpy (svg_filename, "tst");
-    strcpy (png_filename, "tst");
-//	strcat (svg_filename, ".svg");
-    strcat (png_filename, ".png");
-
-    surf = cairo_image_surface_create( CAIRO_FORMAT_ARGB32, width, height );
-    cr = cairo_create( surf );
-
-    cairo_scale( cr, width, height );
-    cairo_set_line_width( cr, 0.01 );
-
-    cairo_rectangle( cr, 0, 0, 1, 1 );
-    cairo_set_source_rgb( cr, 1, 1, 1 );
-    cairo_fill( cr );
-
-    //draw_diagram( name, cr );
-
-    cairo_device_to_user_distance( cr, &ux, &uy );
-    if( ux < uy )
-        ux = uy;
-    cairo_set_line_width( cr, ux );
-    cairo_set_source_rgb( cr, 0, 0, 0 );
-    cairo_rectangle( cr, 0, 0, 1, 1 );
-    cairo_stroke( cr );
-
-    /* write output and clean up */
-    cairo_surface_write_to_png( surf, png_filename );
-    cairo_destroy( cr );
-    cairo_surface_destroy( surf );
 
     return HNLP_LR_RESULT_SUCCESS;
 }
@@ -291,6 +382,8 @@ HNLPLabelRender::renderPreviewToPNGStream( HNLPLabelSpec *spec,
     cairo_set_source_rgb( cr, 1, 1, 1 );
     cairo_fill( cr );
     //cairo_stroke( cr );
+
+    applyTextRegionsPNG( layout, request, cr );
 
     /* write output and clean up */
     cairo_surface_write_to_png_stream( surf, ostream_write_function, (void *)outStream );

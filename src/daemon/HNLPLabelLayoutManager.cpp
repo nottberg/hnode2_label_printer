@@ -365,6 +365,21 @@ HNLPLabelLayout::getID()
     return m_id;
 }
 
+uint
+HNLPLabelLayout::GetContentAreaCount()
+{
+    return m_contentAreaList.size();
+}
+    
+HNLPLabelContentArea*
+HNLPLabelLayout::GetContentAreaByIndex( uint index )
+{
+    if( index >= m_contentAreaList.size() )
+        return NULL;
+
+    return m_contentAreaList[ index ]; 
+}
+
 void
 HNLPLabelLayout::debugPrint()
 {
