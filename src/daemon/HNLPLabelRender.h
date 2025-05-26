@@ -35,6 +35,27 @@ typedef enum HNLPLabelRenderResult
     HNLP_LR_RESULT_FAILURE  
 }HNLP_LR_RESULT_T;
 
+class HNLPRectangle
+{
+    public:
+        HNLPRectangle();
+       ~HNLPRectangle();
+
+        void setDimensions( double x, double y, double width, double length );
+
+        double getX();
+        double getY();
+        double getW();
+        double getL();
+
+    private:
+ 
+        double m_x;
+        double m_y;
+        double m_width;
+        double m_length;
+};
+
 class HNLPLabelRenderTextRegion
 {
     public:

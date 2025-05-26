@@ -16,6 +16,54 @@ convert_mm_to_points( double millimeters )
     return (millimeters * POINTS_PER_MILLIMETER);
 }
 
+HNLPRectangle::HNLPRectangle()
+{
+    m_x = 0.0;
+    m_y = 0.0;
+
+    m_width  = 0.0;
+    m_length = 0.0;
+}
+
+HNLPRectangle::~HNLPRectangle()
+{
+
+}
+
+void
+HNLPRectangle::setDimensions( double x, double y, double width, double length )
+{
+    m_x = x;
+    m_y = y;
+
+    m_width  = width;
+    m_length = length;
+}
+
+double
+HNLPRectangle::getX()
+{
+    return m_x;
+}
+
+double
+HNLPRectangle::getY()
+{
+    return m_y;
+}
+
+double
+HNLPRectangle::getW()
+{
+    return m_width;
+}
+
+double
+HNLPRectangle::getL()
+{
+    return m_length;
+}
+
 HNLPLabelRenderTextRegion::HNLPLabelRenderTextRegion()
 {
 
@@ -151,7 +199,7 @@ HNLPLabelRender::applyTextRegionPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequ
 
     desc = pango_font_description_from_string( "Sans Bold" );
     //pango_font_description_set_absolute_size( desc, FONT_SIZE * DEVICE_DPI * PANGO_SCALE / (72.0 * TWEAKABLE_SCALE) );
-    pango_font_description_set_size( desc, 20 * PANGO_SCALE );
+    pango_font_description_set_size( desc, 14 * PANGO_SCALE );
 
     printf( "PANGO_SCALE = %d\n", PANGO_SCALE );
     pango_layout_set_font_description( layout, desc );
@@ -181,17 +229,32 @@ HNLPLabelRender::applyTextRegionPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequ
     double centerY = 635.0 / 2.0;
 
     printf( "move_dx: %f  move_dy: %f\n", move_dx, move_dy );
-
     */
-/*
-    cairo_set_source_rgb( cr, 0.0, 0.0, 0.0 );
+    double textWidthPts  = (79 / 2.0); 
+    double textLengthPts = (252 / 2.0);
 
-    cairo_move_to( cr, centerX - move_dy, centerY + move_dx );
+    printf( "PDF - text final width(pts): %f,  length(pts): %f\n", textWidthPts, textLengthPts );
+
+    double centerWidthInsetPts  = loWidthPts / 2.0;
+    double centerLengthInsetPts = loLengthPts / 2.0;
+
+    printf( "PDF - text center width(pts): %f,  length(pts): %f\n", centerWidthInsetPts, centerLengthInsetPts );
+
+    // Move to the center of the text
+    cairo_move_to( cr, centerWidthInsetPts + 10.5, centerLengthInsetPts + 98 );
     
+    // Rotate text to the correct orientation
     cairo_rotate( cr, 270 * G_PI / 180. );
 
+    /* Inform Pango to re-layout the text with the new transformation */
+    pango_cairo_update_layout( cr, layout );    
+    
+    // Set text color
+    cairo_set_source_rgb( cr, 0.0, 0.0, 0.0 );
+
+    // Render
     pango_cairo_show_layout( cr, layout );
-*/
+
     cairo_restore( cr );
 
     /* free the layout object */
