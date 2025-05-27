@@ -112,7 +112,9 @@ class HNLPLabelRender
         //void setTextRegionOrientation( uint regionID );
 
         HNLP_LR_RESULT_T renderTemporaryPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layout, HNLPLabelRequest *request, std::string outFile );
-        
+
+        HNLP_LR_RESULT_T renderAlignmentPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layout, HNLPLabelRequest *request, std::string outFile );
+
         HNLP_LR_RESULT_T renderPreviewToPNGStream( HNLPLabelSpec *spec, HNLPLabelLayout *layout, HNLPLabelRequest *request, std::ostream *outStream );
 
     private:

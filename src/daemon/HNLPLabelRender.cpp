@@ -306,6 +306,53 @@ HNLPLabelRender::renderTemporaryPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layou
     return HNLP_LR_RESULT_SUCCESS;
 }
 
+HNLP_LR_RESULT_T
+HNLPLabelRender::renderAlignmentPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layout, HNLPLabelRequest *request, std::string outFile )
+{
+    cairo_surface_t *surf;
+    cairo_t *cr;
+
+    if( spec->isBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    {
+        std::cerr << "Currently only square boundaries are supported." << std::endl;
+        return HNLP_LR_RESULT_FAILURE;
+    }
+
+    double aspectRatio = spec->getBoundaryLength()/spec->getBoundaryWidth();
+
+    std::cout << "PDF - AspectRatio: " << aspectRatio << std::endl;
+
+    double widthPts  = spec->getBoundaryWidth() * PTS_PER_MILLIMETER; 
+    double lengthPts = spec->getBoundaryLength() * PTS_PER_MILLIMETER;
+    
+    std::cout << "PDF - widthPts: " << widthPts << std::endl;
+    std::cout << "PDF - lengthPts: " << lengthPts << std::endl;
+
+    surf = cairo_pdf_surface_create( outFile.c_str(), widthPts, lengthPts );
+    cr = cairo_create( surf );
+
+    //cairo_scale( cr, width, height );
+    cairo_set_line_width( cr, 0.01 );
+
+    cairo_rectangle( cr, 0, 0, widthPts, lengthPts );
+    cairo_set_source_rgb( cr, 1, 1, 1 );
+    cairo_fill( cr );
+
+    //cairo_rectangle( cr, 10, 10, widthPts - 20, lengthPts - 20);
+    cairo_rectangle( cr, 7, 17, 68, 221);
+    cairo_set_source_rgb( cr, 0, 0, 0 );
+    cairo_set_line_width( cr, 2 );
+    cairo_stroke( cr );
+
+    /* write output and clean up */
+    cairo_surface_finish(surf);
+
+    cairo_destroy( cr );
+    cairo_surface_destroy( surf );
+
+    return HNLP_LR_RESULT_SUCCESS;
+}
+
 HNLP_LR_RESULT_T 
 HNLPLabelRender::applyTextRegionsPNG( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, void *context )
 {

@@ -599,6 +599,8 @@ HNLabelPrinterDevice::dispatchEP( HNodeDevice *parent, HNOperationData *opData )
 
         tmpRender.renderTemporaryPDF( spec, layout, &tmpRequest, "/tmp/tmp.pdf" );
 
+        tmpRender.renderAlignmentPDF( spec, layout, &tmpRequest, "/tmp/tmp2.pdf" );
+
         tmpRender.renderPreviewToPNGStream( spec, layout, &tmpRequest, &ostr );    
 
         // Request was successful
