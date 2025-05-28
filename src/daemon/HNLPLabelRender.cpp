@@ -8,7 +8,7 @@
 
 #include "HNLPLabelRender.h"
 
-#define PTS_PER_MILLIMETER  2.8346456693
+#define PTS_PER_MILLIMETER  2.841
 
 static double
 convert_mm_to_points( double millimeters )
@@ -269,18 +269,18 @@ HNLPLabelRender::renderTemporaryPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layou
     cairo_surface_t *surf;
     cairo_t *cr;
 
-    if( spec->isBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    if( spec->isLabelBoundary( HNLP_LB_TYPE_SQUARE ) == false )
     {
         std::cerr << "Currently only square boundaries are supported." << std::endl;
         return HNLP_LR_RESULT_FAILURE;
     }
 
-    double aspectRatio = spec->getBoundaryLength()/spec->getBoundaryWidth();
+    double aspectRatio = spec->getLabelBoundaryLength()/spec->getLabelBoundaryWidth();
 
     std::cout << "PDF - AspectRatio: " << aspectRatio << std::endl;
 
-    double widthPts  = spec->getBoundaryWidth() * PTS_PER_MILLIMETER; 
-    double lengthPts = spec->getBoundaryLength() * PTS_PER_MILLIMETER;
+    double widthPts  = spec->getLabelBoundaryWidth() * PTS_PER_MILLIMETER; 
+    double lengthPts = spec->getLabelBoundaryLength() * PTS_PER_MILLIMETER;
     
     std::cout << "PDF - widthPts: " << widthPts << std::endl;
     std::cout << "PDF - lengthPts: " << lengthPts << std::endl;
@@ -312,18 +312,24 @@ HNLPLabelRender::renderAlignmentPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layou
     cairo_surface_t *surf;
     cairo_t *cr;
 
-    if( spec->isBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    if( spec->isLabelBoundary( HNLP_LB_TYPE_SQUARE ) == false )
     {
-        std::cerr << "Currently only square boundaries are supported." << std::endl;
+        std::cerr << "Currently only square label boundaries are supported." << std::endl;
         return HNLP_LR_RESULT_FAILURE;
     }
 
-    double aspectRatio = spec->getBoundaryLength()/spec->getBoundaryWidth();
+    if( spec->isImagingBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    {
+        std::cerr << "Currently only square imaging boundaries are supported." << std::endl;
+        return HNLP_LR_RESULT_FAILURE;
+    }
+
+    double aspectRatio = spec->getLabelBoundaryLength()/spec->getLabelBoundaryWidth();
 
     std::cout << "PDF - AspectRatio: " << aspectRatio << std::endl;
 
-    double widthPts  = spec->getBoundaryWidth() * PTS_PER_MILLIMETER; 
-    double lengthPts = spec->getBoundaryLength() * PTS_PER_MILLIMETER;
+    double widthPts  = spec->getLabelBoundaryWidth() * PTS_PER_MILLIMETER; 
+    double lengthPts = spec->getLabelBoundaryLength() * PTS_PER_MILLIMETER;
     
     std::cout << "PDF - widthPts: " << widthPts << std::endl;
     std::cout << "PDF - lengthPts: " << lengthPts << std::endl;
@@ -338,8 +344,16 @@ HNLPLabelRender::renderAlignmentPDF( HNLPLabelSpec *spec, HNLPLabelLayout *layou
     cairo_set_source_rgb( cr, 1, 1, 1 );
     cairo_fill( cr );
 
+    double ixPts = spec->getImagingBoundaryInsetWidth() * PTS_PER_MILLIMETER;
+    double iyPts = spec->getImagingBoundaryInsetLength() * PTS_PER_MILLIMETER;
+    double iwPts = spec->getImagingBoundaryWidth() * PTS_PER_MILLIMETER;
+    double ilPts = spec->getImagingBoundaryLength() * PTS_PER_MILLIMETER;
+
+    std::cout << "PDF - image boundary (pts): " << ixPts << ", " << iyPts << ", " << iwPts << ", " << ilPts << std::endl;
+
     //cairo_rectangle( cr, 10, 10, widthPts - 20, lengthPts - 20);
-    cairo_rectangle( cr, 7, 17, 68, 221);
+    //cairo_rectangle( cr, 7, 17, 68, 221);
+    cairo_rectangle( cr, ixPts, iyPts, iwPts, ilPts );    
     cairo_set_source_rgb( cr, 0, 0, 0 );
     cairo_set_line_width( cr, 2 );
     cairo_stroke( cr );
@@ -442,13 +456,13 @@ HNLPLabelRender::renderPreviewToPNGStream( HNLPLabelSpec *spec,
     cairo_surface_t *surf;
     cairo_t *cr;
 
-    if( spec->isBoundary( HNLP_AB_TYPE_SQUARE ) == false )
+    if( spec->isLabelBoundary( HNLP_LB_TYPE_SQUARE ) == false )
     {
         std::cerr << "Currently only square boundaries are supported." << std::endl;
         return HNLP_LR_RESULT_FAILURE;
     }
 
-    double aspectRatio = spec->getBoundaryLength()/spec->getBoundaryWidth();
+    double aspectRatio = spec->getLabelBoundaryLength()/spec->getLabelBoundaryWidth();
 
     std::cout << "Preview - AspectRatio: " << aspectRatio << std::endl;
 
@@ -458,7 +472,7 @@ HNLPLabelRender::renderPreviewToPNGStream( HNLPLabelSpec *spec,
     std::cout << "Preview - widthPX: " << widthPixel << std::endl;
     std::cout << "Preview - lengthPX: " << lengthPixel << std::endl;
 
-    double PixelPerMillimeter = widthPixel / spec->getBoundaryWidth();
+    double PixelPerMillimeter = widthPixel / spec->getLabelBoundaryWidth();
 
     std::cout << "Preview - pixel per mm: " << PixelPerMillimeter << std::endl;
 

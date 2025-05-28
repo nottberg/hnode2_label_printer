@@ -22,6 +22,48 @@ typedef enum HNLPLabelSpecMeasurmentUnits
     HNLP_UNIT_MM
 }HNLP_UNIT_T;
 
+typedef enum HNLPLabelBoundaryType
+{
+    HNLP_LB_TYPE_NOTSET,
+    HNLP_LB_TYPE_SQUARE
+}HNLP_LB_TYPE_T;
+
+class HNLPLabelBoundary
+{
+    public:
+        HNLPLabelBoundary();
+        ~HNLPLabelBoundary();
+
+        virtual HNLP_LB_TYPE_T getType() = 0;
+
+        virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj ) = 0;
+
+        virtual void debugPrint() = 0;
+
+    private:
+};
+
+class HNLPSquareLabelBoundary : public HNLPLabelBoundary
+{
+    public:
+        HNLPSquareLabelBoundary();
+        ~HNLPSquareLabelBoundary();
+
+        virtual HNLP_LB_TYPE_T getType();
+
+        virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
+
+        double getWidth();
+        double getLength();
+
+        virtual void debugPrint();
+
+    private:
+
+        double m_width;
+        double m_length;
+};
+
 typedef enum HNLPAreaBoundaryType
 {
     HNLP_AB_TYPE_NOTSET,
@@ -53,6 +95,8 @@ class HNLPSquareBoundary : public HNLPAreaBoundary
 
         virtual HNLP_LS_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
 
+        double getInsetWidth();
+        double getInsetLength();
         double getWidth();
         double getLength();
 
@@ -60,6 +104,8 @@ class HNLPSquareBoundary : public HNLPAreaBoundary
 
     private:
 
+        double m_insetWidth;
+        double m_insetLength;
         double m_width;
         double m_length;
 };
@@ -82,11 +128,20 @@ class HNLPLabelSpec
         void setVendorRefNum( std::string value );
         std::string getVendorRefNum();
 
-        HNLP_AB_TYPE_T getBoundaryType();
-        bool isBoundary( HNLP_AB_TYPE_T type );
+        HNLP_LB_TYPE_T getLabelBoundaryType();
+        bool isLabelBoundary( HNLP_LB_TYPE_T type );
 
-        double getBoundaryWidth();
-        double getBoundaryLength();
+        double getLabelBoundaryWidth();
+        double getLabelBoundaryLength();
+
+        HNLP_AB_TYPE_T getImagingBoundaryType();
+        bool isImagingBoundary( HNLP_AB_TYPE_T type );
+
+        double getImagingBoundaryInsetWidth();
+        double getImagingBoundaryInsetLength();
+
+        double getImagingBoundaryWidth();
+        double getImagingBoundaryLength();
 
         void clear();
 
@@ -102,6 +157,9 @@ class HNLPLabelSpec
         std::string m_vendorDescription;
 
         std::string m_color;
+        std::string m_cupsMedia;
+
+        HNLPLabelBoundary *m_labelBoundary;
 
         HNLPAreaBoundary *m_areaBoundary;
 };

@@ -4,30 +4,30 @@
 
 #include "HNLPLabelSpecManager.h"
 
-HNLPAreaBoundary::HNLPAreaBoundary()
+HNLPLabelBoundary::HNLPLabelBoundary()
 {
 
 }
 
-HNLPAreaBoundary::~HNLPAreaBoundary()
+HNLPLabelBoundary::~HNLPLabelBoundary()
 {
 
 }
 
-HNLPSquareBoundary::HNLPSquareBoundary()
+HNLPSquareLabelBoundary::HNLPSquareLabelBoundary()
 {
 
 }
 
-HNLPSquareBoundary::~HNLPSquareBoundary()
+HNLPSquareLabelBoundary::~HNLPSquareLabelBoundary()
 {
 
 }
 
-HNLP_AB_TYPE_T
-HNLPSquareBoundary::getType()
+HNLP_LB_TYPE_T
+HNLPSquareLabelBoundary::getType()
 {
-    return HNLP_AB_TYPE_SQUARE;
+    return HNLP_LB_TYPE_SQUARE;
 }
 
 /*
@@ -37,7 +37,7 @@ HNLPSquareBoundary::getType()
     }
 */
 HNLP_LS_RESULT_T
-HNLPSquareBoundary::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
+HNLPSquareLabelBoundary::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
 {
     Poco::Dynamic::Var tmpVar;
 
@@ -54,6 +54,105 @@ HNLPSquareBoundary::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
     }
 
     return HNLP_LS_RESULT_SUCCESS;
+}
+
+double
+HNLPSquareLabelBoundary::getWidth()
+{
+    return m_width;
+}
+
+double
+HNLPSquareLabelBoundary::getLength()
+{
+    return m_length;
+}
+
+void
+HNLPSquareLabelBoundary::debugPrint()
+{
+    std::cout << "  Label Boundary Type: square" << std::endl;
+    std::cout << "     width: " << m_width << std::endl;
+    std::cout << "    length: " << m_length << std::endl;
+}
+
+HNLPAreaBoundary::HNLPAreaBoundary()
+{
+
+}
+
+HNLPAreaBoundary::~HNLPAreaBoundary()
+{
+
+}
+
+HNLPSquareBoundary::HNLPSquareBoundary()
+{
+    m_insetWidth  = 0.0;
+    m_insetLength = 0.0;
+    m_width       = 0.0;
+    m_length      = 0.0;
+}
+
+HNLPSquareBoundary::~HNLPSquareBoundary()
+{
+
+}
+
+HNLP_AB_TYPE_T
+HNLPSquareBoundary::getType()
+{
+    return HNLP_AB_TYPE_SQUARE;
+}
+
+/*
+    "insetWidth":2.464,
+    "insetLength":5.984,
+    "width":23.936,
+    "length":77.792
+*/
+HNLP_LS_RESULT_T
+HNLPSquareBoundary::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
+{
+    Poco::Dynamic::Var tmpVar;
+
+    tmpVar = defObj->get("insetWidth");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_insetWidth = tmpVar.convert<double>();
+    }
+
+    tmpVar = defObj->get("insetLength");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_insetLength = tmpVar.convert<double>();
+    }
+
+    tmpVar = defObj->get("width");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_width = tmpVar.convert<double>();
+    }
+
+    tmpVar = defObj->get("length");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_length = tmpVar.convert<double>();
+    }
+
+    return HNLP_LS_RESULT_SUCCESS;
+}
+
+double
+HNLPSquareBoundary::getInsetWidth()
+{
+    return m_insetWidth;
+}
+
+double
+HNLPSquareBoundary::getInsetLength()
+{
+    return m_insetLength;
 }
 
 double
@@ -146,6 +245,38 @@ HNLPLabelSpec::initFromJSONObject( Poco::JSON::Object::Ptr defObj )
         m_color = tmpVar.convert<std::string>();
     }
 
+    tmpVar = defObj->get("cupsMedia");
+    if( tmpVar.isEmpty() == false )
+    {
+        m_cupsMedia = tmpVar.convert<std::string>();
+    }
+
+    // A label boundary is required
+    if( defObj->has("labelBoundary") == false )
+        return HNLP_LS_RESULT_FAILURE;
+
+    // Check the name of the subobject to see how the
+    // printable area is being defined.
+    Poco::JSON::Object::Ptr lbObj = defObj->getObject("labelBoundary");
+
+    if( lbObj->has("square") )
+    {
+        HNLPSquareLabelBoundary *labelBound = new HNLPSquareLabelBoundary;
+
+        if( labelBound->initFromJSONObject( lbObj->getObject("square") ) != HNLP_LS_RESULT_SUCCESS )
+        {
+            delete labelBound;
+            return HNLP_LS_RESULT_FAILURE;
+        }
+
+        m_labelBoundary = labelBound;
+    }
+    else
+    {
+        // Printable area definition method is not supported
+        return HNLP_LS_RESULT_FAILURE;
+    }
+
     // A printable area definition is required
     if( defObj->has("printableAreaBoundary") == false )
         return HNLP_LS_RESULT_FAILURE;
@@ -223,8 +354,58 @@ HNLPLabelSpec::getVendorRefNum()
     //return m_vendorRefNum;
 }
 
-HNLP_AB_TYPE_T 
-HNLPLabelSpec::getBoundaryType()
+HNLP_LB_TYPE_T 
+HNLPLabelSpec::getLabelBoundaryType()
+{
+    if( m_labelBoundary )
+        return m_labelBoundary->getType();
+
+    return HNLP_LB_TYPE_NOTSET;
+}
+
+bool
+HNLPLabelSpec::isLabelBoundary( HNLP_LB_TYPE_T type )
+{
+    if( m_labelBoundary && (m_labelBoundary->getType() == type) )
+        return true;
+
+    return false;
+}
+
+double
+HNLPLabelSpec::getLabelBoundaryWidth()
+{
+    if( m_labelBoundary )
+    {
+        switch( m_labelBoundary->getType() )
+        {
+            case HNLP_LB_TYPE_SQUARE:      
+                return ((HNLPSquareLabelBoundary *) m_labelBoundary)->getWidth();
+            break;
+        }
+    }
+
+    return 0;
+}
+
+double
+HNLPLabelSpec::getLabelBoundaryLength()
+{
+    if( m_labelBoundary )
+    {
+        switch( m_labelBoundary->getType() )
+        {
+            case HNLP_LB_TYPE_SQUARE:      
+                return ((HNLPSquareLabelBoundary *) m_labelBoundary)->getLength();
+            break;
+        }
+    }
+
+    return 0;
+}
+
+HNLP_AB_TYPE_T
+HNLPLabelSpec::getImagingBoundaryType()
 {
     if( m_areaBoundary )
         return m_areaBoundary->getType();
@@ -233,7 +414,7 @@ HNLPLabelSpec::getBoundaryType()
 }
 
 bool
-HNLPLabelSpec::isBoundary( HNLP_AB_TYPE_T type )
+HNLPLabelSpec::isImagingBoundary( HNLP_AB_TYPE_T type )
 {
     if( m_areaBoundary && (m_areaBoundary->getType() == type) )
         return true;
@@ -242,7 +423,39 @@ HNLPLabelSpec::isBoundary( HNLP_AB_TYPE_T type )
 }
 
 double
-HNLPLabelSpec::getBoundaryWidth()
+HNLPLabelSpec::getImagingBoundaryInsetWidth()
+{
+    if( m_areaBoundary )
+    {
+        switch( m_areaBoundary->getType() )
+        {
+            case HNLP_AB_TYPE_SQUARE:      
+                return ((HNLPSquareBoundary *) m_areaBoundary)->getInsetWidth();
+            break;
+        }
+    }
+
+    return 0;
+}
+
+double
+HNLPLabelSpec::getImagingBoundaryInsetLength()
+{
+    if( m_areaBoundary )
+    {
+        switch( m_areaBoundary->getType() )
+        {
+            case HNLP_AB_TYPE_SQUARE:      
+                return ((HNLPSquareBoundary *) m_areaBoundary)->getInsetLength();
+            break;
+        }
+    }
+
+    return 0;
+}
+
+double
+HNLPLabelSpec::getImagingBoundaryWidth()
 {
     if( m_areaBoundary )
     {
@@ -258,7 +471,7 @@ HNLPLabelSpec::getBoundaryWidth()
 }
 
 double
-HNLPLabelSpec::getBoundaryLength()
+HNLPLabelSpec::getImagingBoundaryLength()
 {
     if( m_areaBoundary )
     {

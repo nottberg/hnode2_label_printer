@@ -5,11 +5,21 @@
             "vendorLabelID":"30252",
             "vendorDescription":"White Address Labels",
             "color":"white",
+            "cupsMedia":"w79h252",
 
-            "printableAreaBoundary":{
+            "labelBoundary":{
                 "square":{
                     "width":28,
                     "length":89
+                }
+            },
+
+            "printableAreaBoundary":{
+                "square":{
+                    "insetWidth":2.464,
+                    "insetLength":5.984,
+                    "width":23.936,
+                    "length":77.792
                 }
             }
         }
