@@ -41,7 +41,14 @@ class HNLPRectangle
         HNLPRectangle();
        ~HNLPRectangle();
 
+        void initFromRect( HNLPRectangle *srcRect );
+
         void setDimensions( double x, double y, double width, double length );
+
+        void addX( double value );
+        void addY( double value );
+        void setW( double value );
+        void setL( double value );
 
         double getX();
         double getY();
@@ -94,6 +101,10 @@ class HNLPLabelRender
         //void setPrintInfo( std::string mediaName, double widthMM, double heightMM );
 
         //uint createTextRegion();
+
+        HNLP_LR_RESULT_T applyTextRegionsAlignmentPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, HNLPRectangle *printArea, void *context );
+
+        HNLP_LR_RESULT_T applyTextRegionAlignmentPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, HNLPLabelContentArea *contentArea, HNLPRectangle *printArea, void *context );
 
         HNLP_LR_RESULT_T applyTextRegionPDF( HNLPLabelLayout *labelLayout, HNLPLabelRequest *request, HNLPLabelContentArea *contentArea, void *context );
 

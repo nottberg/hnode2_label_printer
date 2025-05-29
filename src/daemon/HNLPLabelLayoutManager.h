@@ -52,6 +52,14 @@ class HNLPLabelTextContent : public HNLPLabelContentArea
 
         virtual HNLP_LL_RESULT_T initFromJSONObject( Poco::JSON::Object::Ptr defObj );
 
+        double getBBInsetWidth();
+        double getBBInsetLength();
+        double getBBWidth();
+        double getBBLength();
+
+        std::string getFontName();
+        double getFontSize();
+
         virtual void debugPrint();
 
     private:

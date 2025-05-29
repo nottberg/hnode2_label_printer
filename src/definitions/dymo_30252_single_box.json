@@ -19,14 +19,14 @@
                     "boundingBox":{
                         "widthInset":2,
                         "lengthInset":2,
-                        "width":24,
-                        "length":85,
+                        "width":20,
+                        "length":74,
                         "orientation":0
                     },
                     "textProperties":{
                         "format":"{text}",
-                        "font":"Sans Bold 27",
-                        "fontSize":36
+                        "font":"Sans Bold",
+                        "fontSize":20
                     }
                 }
             ]

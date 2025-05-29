@@ -151,6 +151,42 @@ HNLPLabelTextContent::initTextPropertiesFromJSONObject( Poco::JSON::Object::Ptr 
     return HNLP_LL_RESULT_SUCCESS;
 }
 
+double
+HNLPLabelTextContent::getBBInsetWidth()
+{
+    return m_bbWidthInset;
+}
+
+double
+HNLPLabelTextContent::getBBInsetLength()
+{
+    return m_bbLengthInset;
+}
+
+double
+HNLPLabelTextContent::getBBWidth()
+{
+    return m_bbWidth;
+}
+
+double
+HNLPLabelTextContent::getBBLength()
+{
+    return m_bbLength;
+}
+
+std::string
+HNLPLabelTextContent::getFontName()
+{
+    return m_tpFont;
+}
+
+double
+HNLPLabelTextContent::getFontSize()
+{
+    return m_tpFontSize;
+}
+
 void
 HNLPLabelTextContent::debugPrint()
 {
